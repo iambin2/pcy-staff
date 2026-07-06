@@ -1,0 +1,391 @@
+:root {
+  --bg: #f7f5f0;
+  --surface: #ffffff;
+  --ink: #23201c;
+  --muted: #6e6a63;
+  --line: #e6e2d8;
+  --red: #d2352c;
+  --red-soft: #fbeae8;
+  --mint: #2fa98c;
+  --mint-soft: #e5f4ef;
+  --radius: 14px;
+  --shadow: 0 1px 2px rgba(35, 32, 28, 0.05), 0 8px 24px rgba(35, 32, 28, 0.06);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--ink);
+  font-family: 'IBM Plex Sans KR', system-ui, -apple-system, sans-serif;
+  font-size: 16px;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+}
+
+code {
+  font-family: 'IBM Plex Mono', ui-monospace, monospace;
+  background: rgba(35, 32, 28, 0.06);
+  padding: 1px 6px;
+  border-radius: 6px;
+  font-size: 0.9em;
+}
+
+/* ---------- 버튼 ---------- */
+.btn {
+  appearance: none;
+  border: 1.5px solid var(--ink);
+  background: var(--ink);
+  color: #fff;
+  font: inherit;
+  font-weight: 500;
+  padding: 9px 18px;
+  border-radius: 999px;
+  cursor: pointer;
+  transition: transform 0.08s ease, opacity 0.15s ease;
+}
+.btn:hover {
+  opacity: 0.88;
+}
+.btn:active {
+  transform: translateY(1px);
+}
+.btn-ghost {
+  background: transparent;
+  color: var(--ink);
+  border-color: var(--line);
+  padding: 7px 14px;
+}
+.btn-ghost:hover {
+  border-color: var(--ink);
+  opacity: 1;
+}
+.btn:focus-visible,
+.btn-ghost:focus-visible {
+  outline: 3px solid var(--mint);
+  outline-offset: 2px;
+}
+.btn-full {
+  width: 100%;
+  padding: 12px;
+  margin-top: 6px;
+}
+.btn:disabled {
+  opacity: 0.55;
+  cursor: default;
+}
+
+/* ---------- 로그인 폼 ---------- */
+.login-form {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.field span {
+  font-size: 13px;
+  color: var(--muted);
+  font-weight: 500;
+}
+.field input {
+  font: inherit;
+  padding: 11px 13px;
+  border: 1.5px solid var(--line);
+  border-radius: 10px;
+  background: #fff;
+  color: var(--ink);
+  transition: border-color 0.15s ease;
+}
+.field input:focus {
+  outline: none;
+  border-color: var(--ink);
+}
+.field input:disabled {
+  background: #f2f0ea;
+}
+.field-error {
+  font-size: 13.5px;
+  color: var(--red);
+  background: var(--red-soft);
+  padding: 9px 12px;
+  border-radius: 9px;
+}
+
+/* ---------- 로그인 게이트 ---------- */
+.gate {
+  min-height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  gap: 20px;
+}
+.gate-card {
+  width: 100%;
+  max-width: 440px;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-top: 4px solid var(--red);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  padding: 34px 32px 30px;
+  animation: rise 0.5s ease both;
+}
+.gate-brand {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+.gate-club {
+  font-size: 13px;
+  color: var(--muted);
+  letter-spacing: 0.02em;
+}
+.gate-title {
+  margin: 2px 0 0;
+  font-size: 24px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+}
+.gate-sub {
+  margin: 18px 0 24px;
+  color: var(--muted);
+  font-size: 15px;
+}
+.gate-sub b {
+  color: var(--ink);
+  font-weight: 600;
+}
+.gate-body {
+  min-height: 96px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.gate-signin {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+  width: 100%;
+}
+.gate-gbtn {
+  display: flex;
+  justify-content: center;
+}
+.gate-hint {
+  font-size: 13px;
+  color: var(--muted);
+  text-align: center;
+}
+.gate-note {
+  color: var(--muted);
+  font-size: 15px;
+}
+.gate-msg {
+  width: 100%;
+  text-align: center;
+  padding: 18px;
+  border-radius: 12px;
+  font-size: 14.5px;
+}
+.gate-msg p {
+  margin: 8px 0 16px;
+  color: var(--muted);
+}
+.gate-msg-title {
+  font-weight: 600;
+  font-size: 16px;
+}
+.gate-denied {
+  background: var(--red-soft);
+}
+.gate-denied .gate-msg-title {
+  color: var(--red);
+}
+.gate-error {
+  background: #fff6e8;
+}
+.gate-error .gate-msg-title {
+  color: #b6791b;
+}
+.gate-foot {
+  font-size: 12.5px;
+  color: var(--muted);
+}
+
+/* ---------- 앱(대시보드) ---------- */
+.app {
+  min-height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+.topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 14px 22px;
+  background: var(--surface);
+  border-bottom: 1px solid var(--line);
+  flex-wrap: wrap;
+}
+.topbar-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.topbar-titles {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.25;
+}
+.topbar-club {
+  font-size: 12px;
+  color: var(--muted);
+}
+.topbar-site {
+  font-size: 16px;
+  font-weight: 600;
+}
+.topbar-right {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.avatar {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  border: 1px solid var(--line);
+}
+.who {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.25;
+  text-align: right;
+}
+.who-name {
+  font-weight: 600;
+  font-size: 14px;
+}
+.who-role {
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.main {
+  flex: 1;
+  width: 100%;
+  max-width: 960px;
+  margin: 0 auto;
+  padding: 34px 22px 48px;
+}
+.hello h2 {
+  margin: 0 0 6px;
+  font-size: 22px;
+  font-weight: 600;
+}
+.hello h2 b {
+  color: var(--red);
+}
+.hello p {
+  margin: 0 0 28px;
+  color: var(--muted);
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 16px;
+}
+.card {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 20px;
+  transition: border-color 0.15s ease, transform 0.15s ease;
+}
+.card:hover {
+  border-color: var(--ink);
+  transform: translateY(-2px);
+}
+.card-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+.card-top h3 {
+  margin: 0;
+  font-size: 17px;
+  font-weight: 600;
+}
+.tag {
+  font-size: 11.5px;
+  color: var(--mint);
+  background: var(--mint-soft);
+  padding: 3px 9px;
+  border-radius: 999px;
+  white-space: nowrap;
+}
+.card-desc {
+  margin: 10px 0 16px;
+  color: var(--muted);
+  font-size: 14px;
+}
+.card-foot {
+  font-size: 12.5px;
+  color: var(--muted);
+  border-top: 1px dashed var(--line);
+  padding-top: 12px;
+}
+
+.foot {
+  text-align: center;
+  padding: 20px;
+  font-size: 12.5px;
+  color: var(--muted);
+  border-top: 1px solid var(--line);
+}
+
+@keyframes rise {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation: none !important;
+    transition: none !important;
+  }
+}
+
+@media (max-width: 520px) {
+  .who {
+    display: none;
+  }
+  .gate-card {
+    padding: 26px 20px;
+  }
+}

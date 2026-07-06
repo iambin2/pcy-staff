@@ -1,16 +1,15 @@
 import { useEffect, useState, useCallback } from 'react'
 import { login as apiLogin, checkSession } from './api'
 import LoginGate from './components/LoginGate'
-import Dashboard from './components/Dashboard'
+import AppShell from './components/AppShell'
 
 const SESSION_KEY = 'pcy_staff_session'
 
 export default function App() {
-  const [status, setStatus] = useState('loading') // loading | signedout | checking | allowed | error
+  const [status, setStatus] = useState('loading')
   const [user, setUser] = useState(null)
   const [errorMsg, setErrorMsg] = useState('')
 
-  // 페이지가 열릴 때: 저장된 세션이 있으면 백엔드에 유효한지 물어봅니다.
   useEffect(() => {
     let cancelled = false
     async function boot() {
@@ -24,13 +23,12 @@ export default function App() {
         const result = await checkSession(token)
         if (cancelled) return
         if (result.allowed) {
-          const u = { name: result.name || '임원진', role: result.role || '임원진' }
-          setUser(u)
+          setUser({ name: result.name || '임원진', role: result.role || '임원진' })
           setStatus('allowed')
           return
         }
       } catch {
-        /* 확인 실패 시 다시 로그인 화면으로 */
+        /* 다시 로그인 */
       }
       sessionStorage.removeItem(SESSION_KEY)
       if (!cancelled) setStatus('signedout')
@@ -41,7 +39,6 @@ export default function App() {
     }
   }, [])
 
-  // 로그인 버튼을 눌렀을 때
   const handleLogin = useCallback(async (id, pw) => {
     setErrorMsg('')
     setStatus('checking')
@@ -70,15 +67,10 @@ export default function App() {
   }
 
   if (status === 'allowed') {
-    return <Dashboard user={user} onSignOut={signOut} />
+    return <AppShell user={user} onSignOut={signOut} />
   }
 
   return (
-    <LoginGate
-      status={status}
-      errorMsg={errorMsg}
-      onLogin={handleLogin}
-      onRetry={signOut}
-    />
+    <LoginGate status={status} errorMsg={errorMsg} onLogin={handleLogin} onRetry={signOut} />
   )
 }

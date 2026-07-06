@@ -363,6 +363,234 @@ code {
   border-top: 1px solid var(--line);
 }
 
+/* ---------- 홈 카드 (클릭 가능) ---------- */
+.card {
+  text-align: left;
+  font: inherit;
+  color: inherit;
+  width: 100%;
+}
+.card-active {
+  cursor: pointer;
+}
+.card-active:hover {
+  border-color: var(--red);
+  transform: translateY(-2px);
+}
+.card-active:focus-visible {
+  outline: 3px solid var(--mint);
+  outline-offset: 2px;
+}
+.card-soon {
+  opacity: 0.72;
+}
+.tag-ready {
+  color: var(--red);
+  background: var(--red-soft);
+}
+.card-foot-go {
+  color: var(--red);
+  font-weight: 500;
+  border-top-color: var(--red-soft);
+}
+
+/* ---------- 모듈 공통 ---------- */
+.module-head {
+  margin-bottom: 24px;
+}
+.module-head h2 {
+  margin: 0 0 6px;
+  font-size: 22px;
+  font-weight: 600;
+}
+.module-head p {
+  margin: 0;
+  color: var(--muted);
+}
+.field em {
+  color: var(--red);
+  font-style: normal;
+  font-weight: 500;
+}
+textarea {
+  font: inherit;
+  padding: 11px 13px;
+  border: 1.5px solid var(--line);
+  border-radius: 10px;
+  background: #fff;
+  color: var(--ink);
+  resize: vertical;
+  line-height: 1.5;
+}
+textarea:focus {
+  outline: none;
+  border-color: var(--ink);
+}
+
+/* ---------- 조편성기 ---------- */
+.organizer {
+  display: grid;
+  grid-template-columns: minmax(300px, 380px) 1fr;
+  gap: 28px;
+  align-items: start;
+}
+.org-inputs {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+.org-controls {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+.field-inline {
+  gap: 6px;
+}
+.stepper {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.stepper button {
+  width: 38px;
+  height: 40px;
+  border: 1.5px solid var(--line);
+  background: #fff;
+  border-radius: 10px;
+  font-size: 20px;
+  cursor: pointer;
+  color: var(--ink);
+}
+.stepper button:hover {
+  border-color: var(--ink);
+}
+.stepper input {
+  width: 60px;
+  text-align: center;
+  font: inherit;
+  padding: 9px;
+  border: 1.5px solid var(--line);
+  border-radius: 10px;
+}
+.link-toggle {
+  background: none;
+  border: none;
+  color: var(--mint);
+  font: inherit;
+  font-weight: 500;
+  cursor: pointer;
+  padding: 8px 0;
+}
+.org-advanced {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding: 16px;
+  background: var(--mint-soft);
+  border-radius: 12px;
+}
+.org-warning {
+  font-size: 13.5px;
+  color: #8a6d1b;
+  background: #fff6e8;
+  padding: 9px 12px;
+  border-radius: 9px;
+}
+.btn-sm {
+  padding: 5px 12px;
+  font-size: 13px;
+}
+
+.org-result {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+.result-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 12px;
+}
+.result-card {
+  background: #fff;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 14px 16px;
+}
+.result-card-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  margin-bottom: 10px;
+}
+.result-no {
+  font-weight: 600;
+  font-size: 16px;
+  color: var(--red);
+}
+.result-count {
+  font-size: 12px;
+  color: var(--muted);
+}
+.result-members {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.member-chip {
+  font-size: 13.5px;
+  background: var(--bg);
+  border: 1px solid var(--line);
+  padding: 3px 10px;
+  border-radius: 999px;
+}
+.member-empty {
+  font-size: 13px;
+  color: var(--muted);
+}
+.announce {
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  overflow: hidden;
+}
+.announce-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 14px;
+  background: #fff;
+  border-bottom: 1px solid var(--line);
+  font-size: 13px;
+  color: var(--muted);
+  font-weight: 500;
+}
+.announce-body {
+  margin: 0;
+  padding: 14px;
+  background: #fff;
+  font-family: 'IBM Plex Mono', ui-monospace, monospace;
+  font-size: 13px;
+  line-height: 1.7;
+  white-space: pre-wrap;
+  color: var(--ink);
+}
+
+.topbar-home {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+}
+
+@media (max-width: 720px) {
+  .organizer {
+    grid-template-columns: 1fr;
+  }
+}
+
 @keyframes rise {
   from {
     opacity: 0;

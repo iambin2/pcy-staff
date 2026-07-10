@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { CLUB_NAME, SITE_NAME } from '../config'
+import { SITE_NAME } from '../config'
 
 export default function LoginGate({ status, errorMsg, onLogin, onRetry }) {
   const [id, setId] = useState('')
@@ -19,12 +19,6 @@ export default function LoginGate({ status, errorMsg, onLogin, onRetry }) {
           <div className="brand-mark-lg">POKÉMON · CENTER · YONSEI</div>
           <div className="brand-sub">{SITE_NAME} · Staff Workspace</div>
         </div>
-
-        <p className="gate-sub">
-          승인된 임원진만 이용할 수 있는 공간입니다.
-          <br />
-          공유받은 <b>아이디·비밀번호</b>로 로그인해 주세요.
-        </p>
 
         {status === 'error' ? (
           <div className="gate-msg gate-error">
@@ -66,8 +60,6 @@ export default function LoginGate({ status, errorMsg, onLogin, onRetry }) {
           </form>
         )}
       </div>
-
-      <div className="gate-foot">© {CLUB_NAME} · 임원진 전용</div>
     </div>
   )
 }

@@ -57,3 +57,17 @@ export function rosterPreview(rows) {
 export function rosterCommit(rows) {
   return authed('rosterCommit', { rows })
 }
+export function rosterView() {
+  return authed('rosterView')
+}
+
+// ── 업무 캘린더 ──
+export function listTasks() {
+  return authed('listTasks')
+}
+export function saveTask(task) {
+  return authed('saveTask', { task })
+}
+export function deleteTask(id) {
+  return authed('deleteTask', { id })
+}

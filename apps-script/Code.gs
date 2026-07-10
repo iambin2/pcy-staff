@@ -1,5 +1,5 @@
 /**
- * 포켓몬 센터 연세점 · 임원진 업무실 — 문지기 (v2.4)
+ * 포켓몬 센터 연세점 · 임원진 업무실 — 문지기 (v2.6)
  * 로그인 + 면접 접수 + 회원 명부 자동 최신화
  */
 
@@ -23,13 +23,17 @@ function doPost(e) {
       case 'saveRosterUrl': return auth(body, cfg, function () { props().setProperty('ROSTER_SHEET_URL', String(body.url || '')); return json({ ok: true }) })
       case 'rosterPreview': return auth(body, cfg, function () { return json(rosterPreview(body.rows)) })
       case 'rosterCommit': return auth(body, cfg, function () { return json(rosterCommit(body.rows)) })
+      case 'rosterView': return auth(body, cfg, function () { return json(rosterViewData()) })
+      case 'listTasks': return auth(body, cfg, function () { return json({ ok: true, tasks: listTasks() }) })
+      case 'saveTask': return auth(body, cfg, function () { return json(saveTask(body.task)) })
+      case 'deleteTask': return auth(body, cfg, function () { return json(deleteTask(body.id)) })
       default: return json({ ok: false, message: '알 수 없는 요청입니다.' })
     }
   } catch (err) {
     return json({ ok: false, message: '요청 처리 오류: ' + err })
   }
 }
-function doGet() { return json({ ok: true, message: '임원진 업무실 문지기(v2.4)가 정상 작동 중입니다.' }) }
+function doGet() { return json({ ok: true, message: '임원진 업무실 문지기(v2.6)가 정상 작동 중입니다.' }) }
 
 // ===== 인증 =====
 function doLogin(body, cfg) {
@@ -228,7 +232,38 @@ function rosterCommit(rows) {
   })
   writeRosterTab(newSs.insertSheet('OB'), res.obList, true)
 
+  // 새로 만든 명부를 '현재 명부'로 자동 연결
+  props().setProperty('ROSTER_SHEET_URL', newSs.getUrl())
+
   return { ok: true, url: newSs.getUrl(), newTier: res.newTier, summary: res.summary }
+}
+
+// 현재 연결된 명부를 조회용으로 읽어옴 (기수별 탭 + OB 탭)
+function rosterViewData() {
+  var url = props().getProperty('ROSTER_SHEET_URL')
+  if (!url) return { ok: true, connected: false, sheets: [] }
+  var ss; try { ss = SpreadsheetApp.openByUrl(url) } catch (e) { return { ok: false, message: '명부를 읽지 못했어요: ' + e } }
+  var out = []
+  ss.getSheets().forEach(function (sheet) {
+    var name = sheet.getName()
+    if (!/^\d+기$/.test(name) && name !== 'OB') return
+    var vals = sheet.getDataRange().getValues()
+    if (vals.length < 1) return
+    var header = vals[0].map(function (x) { return cellStr(x) })
+    var rows = []
+    for (var r = 1; r < vals.length; r++) {
+      var row = vals[r].map(function (x) { return cellStr(x) })
+      if (row.join('').trim() === '') continue
+      rows.push(row)
+    }
+    out.push({ name: name, header: header, rows: rows })
+  })
+  out.sort(function (a, b) {
+    if (a.name === 'OB') return 1
+    if (b.name === 'OB') return -1
+    return parseInt(a) - parseInt(b)
+  })
+  return { ok: true, connected: true, url: url, sheets: out }
 }
 
 function writeRosterTab(sheet, people, ob) {
@@ -241,6 +276,57 @@ function writeRosterTab(sheet, people, ob) {
   })
   sheet.getRange(1, 1, rows.length, header.length).setValues(rows)
   sheet.setFrozenRows(1)
+}
+
+// ===== 업무 캘린더 =====
+var TASK_COLS = ['id', '진행상태', '우선순위', '업무명', '마감일', '담당부서', '담당자', '메모']
+function taskSheet() {
+  var ss = SpreadsheetApp.getActive()
+  var sh = ss.getSheetByName('업무')
+  if (!sh) {
+    sh = ss.insertSheet('업무')
+    sh.getRange(1, 1, 1, TASK_COLS.length).setValues([TASK_COLS])
+    sh.setFrozenRows(1)
+  }
+  return sh
+}
+function listTasks() {
+  var sh = taskSheet()
+  var vals = sh.getDataRange().getValues()
+  if (vals.length < 2) return []
+  var head = vals[0].map(function (x) { return String(x).trim() })
+  var idx = {}; TASK_COLS.forEach(function (c) { idx[c] = head.indexOf(c) })
+  var out = []
+  for (var r = 1; r < vals.length; r++) {
+    var id = idx.id >= 0 ? String(vals[r][idx.id]) : ''
+    if (!id) continue
+    var t = {}; TASK_COLS.forEach(function (c) { t[c] = idx[c] >= 0 ? cellStr(vals[r][idx[c]]) : '' })
+    out.push(t)
+  }
+  return out
+}
+function saveTask(task) {
+  var sh = taskSheet()
+  var vals = sh.getDataRange().getValues()
+  var head = vals[0].map(function (x) { return String(x).trim() })
+  var idIdx = head.indexOf('id')
+  var id = task.id
+  if (!id) { id = 'T' + Date.now() + Math.floor(Math.random() * 1000); task.id = id }
+  var rowValues = head.map(function (h) { return h === 'id' ? id : (task[h] !== undefined && task[h] !== null ? task[h] : '') })
+  for (var r = 1; r < vals.length; r++) {
+    if (String(vals[r][idIdx]) === id) { sh.getRange(r + 1, 1, 1, head.length).setValues([rowValues]); return { ok: true, task: task } }
+  }
+  sh.appendRow(rowValues)
+  return { ok: true, task: task }
+}
+function deleteTask(id) {
+  var sh = taskSheet()
+  var vals = sh.getDataRange().getValues()
+  var idIdx = vals[0].map(function (x) { return String(x).trim() }).indexOf('id')
+  for (var r = 1; r < vals.length; r++) {
+    if (String(vals[r][idIdx]) === String(id)) { sh.deleteRow(r + 1); return { ok: true } }
+  }
+  return { ok: true }
 }
 
 // ===== 토큰 & 공통 =====

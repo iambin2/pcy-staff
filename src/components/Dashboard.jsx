@@ -2,7 +2,7 @@ const MODULES = [
   { key: 'teams', name: '랜덤 조편성기', desc: '정모 조 편성 + 공지 자동 생성', active: true },
   { key: 'interview', name: '면접 자동 배정', desc: '지원자·면접관 일정 자동 배정', active: true },
   { key: 'roster', name: '회원 명부', desc: '기수별 명단 · 자동 최신화', active: true },
-  { key: 'calendar', name: '업무 캘린더', desc: '마감일·담당자별 업무 관리', phase: '준비 예정' },
+  { key: 'calendar', name: '업무 캘린더', desc: '마감일 달력 · 직접 관리', active: true },
   { key: 'archive', name: '파일 아카이브', desc: '자료 업로드·분류·검색', phase: '준비 예정' },
 ]
 

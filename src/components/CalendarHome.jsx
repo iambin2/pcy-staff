@@ -1,0 +1,188 @@
+import { useEffect, useMemo, useState } from 'react'
+import { listTasks, saveTask, deleteTask } from '../api'
+
+const STATUSES = ['예정', '진행중', '완료']
+const PRIORITIES = ['높음', '보통', '낮음']
+const DEPTS = ['임원진 전체', '기획부', '정보부', '총무부']
+const WEEK = ['일', '월', '화', '수', '목', '금', '토']
+
+const pad2 = (n) => String(n).padStart(2, '0')
+const keyOf = (d) => `${d.getFullYear()}-${pad2(d.getMonth() + 1)}-${pad2(d.getDate())}`
+const todayKey = keyOf(new Date())
+
+function monthGrid(year, month) {
+  const first = new Date(year, month, 1)
+  const cells = []
+  for (let i = 0; i < first.getDay(); i++) cells.push(null)
+  const days = new Date(year, month + 1, 0).getDate()
+  for (let d = 1; d <= days; d++) cells.push(new Date(year, month, d))
+  while (cells.length % 7 !== 0) cells.push(null)
+  return cells
+}
+
+function emptyTask(dateKey) {
+  return { id: '', 진행상태: '예정', 우선순위: '보통', 업무명: '', 마감일: dateKey || '', 담당부서: '임원진 전체', 담당자: '', 메모: '' }
+}
+
+export default function CalendarHome() {
+  const now = new Date()
+  const [ym, setYm] = useState({ y: now.getFullYear(), m: now.getMonth() })
+  const [tasks, setTasks] = useState([])
+  const [status, setStatus] = useState('loading')
+  const [editing, setEditing] = useState(null)
+  const [saving, setSaving] = useState(false)
+  const [msg, setMsg] = useState('')
+
+  useEffect(() => {
+    listTasks()
+      .then((r) => { if (r.ok) { setTasks(r.tasks || []); setStatus('ready') } else { setStatus('error'); setMsg(r.message || '불러오기 실패') } })
+      .catch((e) => { setStatus('error'); setMsg('서버 연결 실패: ' + e.message) })
+  }, [])
+
+  const byDate = useMemo(() => {
+    const map = {}
+    tasks.forEach((t) => { if (t.마감일) (map[t.마감일] = map[t.마감일] || []).push(t) })
+    return map
+  }, [tasks])
+
+  const cells = useMemo(() => monthGrid(ym.y, ym.m), [ym])
+
+  function shiftMonth(delta) {
+    setYm(({ y, m }) => {
+      const d = new Date(y, m + delta, 1)
+      return { y: d.getFullYear(), m: d.getMonth() }
+    })
+  }
+
+  async function save() {
+    if (!editing.업무명.trim()) { setMsg('업무명을 입력해 주세요.'); return }
+    if (!editing.마감일) { setMsg('마감일을 정해 주세요.'); return }
+    setSaving(true); setMsg('')
+    try {
+      const r = await saveTask(editing)
+      if (r.ok) {
+        const t = r.task
+        setTasks((prev) => {
+          const i = prev.findIndex((x) => x.id === t.id)
+          if (i >= 0) { const c = prev.slice(); c[i] = t; return c }
+          return [...prev, t]
+        })
+        setEditing(null)
+      } else setMsg(r.message || '저장 실패')
+    } catch (e) { setMsg('저장 실패: ' + e.message) }
+    setSaving(false)
+  }
+
+  async function remove() {
+    if (!editing.id) { setEditing(null); return }
+    setSaving(true); setMsg('')
+    try {
+      const r = await deleteTask(editing.id)
+      if (r.ok) { setTasks((prev) => prev.filter((x) => x.id !== editing.id)); setEditing(null) }
+      else setMsg(r.message || '삭제 실패')
+    } catch (e) { setMsg('삭제 실패: ' + e.message) }
+    setSaving(false)
+  }
+
+  if (status === 'loading') return <div className="iv-note">불러오는 중…</div>
+  if (status === 'error') return <div className="iv-note iv-note-err">{msg}</div>
+
+  const set = (k, v) => setEditing((e) => ({ ...e, [k]: v }))
+
+  return (
+    <div className="module">
+      <div className="module-head">
+        <h2>업무 캘린더</h2>
+        <p>마감일 기준으로 업무를 한눈에. 날짜나 업무를 눌러 추가·수정하세요.</p>
+      </div>
+
+      <div className="cal-bar">
+        <div className="cal-nav">
+          <button type="button" onClick={() => shiftMonth(-1)} aria-label="이전 달">‹</button>
+          <span className="cal-title">{ym.y}년 {ym.m + 1}월</span>
+          <button type="button" onClick={() => shiftMonth(1)} aria-label="다음 달">›</button>
+          <button type="button" className="cal-today" onClick={() => setYm({ y: now.getFullYear(), m: now.getMonth() })}>오늘</button>
+        </div>
+        <button type="button" className="btn" onClick={() => setEditing(emptyTask(''))}>＋ 업무 추가</button>
+      </div>
+
+      <div className="cal-grid">
+        {WEEK.map((w, i) => (
+          <div key={w} className={'cal-wh' + (i === 0 ? ' cal-sun' : i === 6 ? ' cal-sat' : '')}>{w}</div>
+        ))}
+        {cells.map((d, i) => {
+          if (!d) return <div key={i} className="cal-cell cal-blank" />
+          const k = keyOf(d)
+          const dayTasks = byDate[k] || []
+          return (
+            <div key={i} className={'cal-cell' + (k === todayKey ? ' cal-today-cell' : '')} onClick={() => setEditing(emptyTask(k))}>
+              <div className={'cal-day' + (d.getDay() === 0 ? ' cal-sun' : d.getDay() === 6 ? ' cal-sat' : '')}>{d.getDate()}</div>
+              <div className="cal-tasks">
+                {dayTasks.slice(0, 4).map((t) => (
+                  <button
+                    key={t.id}
+                    className={'cal-pill pr-' + t.우선순위 + (t.진행상태 === '완료' ? ' done' : '')}
+                    onClick={(e) => { e.stopPropagation(); setEditing({ ...t }) }}
+                    title={t.업무명}
+                  >
+                    {t.진행상태 === '완료' ? '✓ ' : ''}{t.업무명}
+                  </button>
+                ))}
+                {dayTasks.length > 4 && <div className="cal-more">+{dayTasks.length - 4}</div>}
+              </div>
+            </div>
+          )
+        })}
+      </div>
+
+      {editing && (
+        <div className="modal-overlay" onClick={() => setEditing(null)}>
+          <div className="modal" onClick={(e) => e.stopPropagation()}>
+            <h3>{editing.id ? '업무 수정' : '업무 추가'}</h3>
+            <label className="field"><span>업무명</span>
+              <input type="text" value={editing.업무명} onChange={(e) => set('업무명', e.target.value)} autoFocus />
+            </label>
+            <div className="modal-row">
+              <label className="field"><span>마감일</span>
+                <input type="date" value={editing.마감일} onChange={(e) => set('마감일', e.target.value)} />
+              </label>
+              <label className="field"><span>진행상태</span>
+                <select value={editing.진행상태} onChange={(e) => set('진행상태', e.target.value)}>
+                  {STATUSES.map((s) => <option key={s}>{s}</option>)}
+                </select>
+              </label>
+            </div>
+            <div className="modal-row">
+              <label className="field"><span>우선순위</span>
+                <select value={editing.우선순위} onChange={(e) => set('우선순위', e.target.value)}>
+                  {PRIORITIES.map((s) => <option key={s}>{s}</option>)}
+                </select>
+              </label>
+              <label className="field"><span>담당 부서</span>
+                <select value={editing.담당부서} onChange={(e) => set('담당부서', e.target.value)}>
+                  {DEPTS.map((s) => <option key={s}>{s}</option>)}
+                </select>
+              </label>
+            </div>
+            <label className="field"><span>담당자</span>
+              <input type="text" value={editing.담당자} onChange={(e) => set('담당자', e.target.value)} placeholder="예: 이제빈 등 3명" />
+            </label>
+            <label className="field"><span>메모</span>
+              <textarea rows={2} value={editing.메모} onChange={(e) => set('메모', e.target.value)} />
+            </label>
+
+            {msg && <div className="field-error">{msg}</div>}
+
+            <div className="modal-actions">
+              {editing.id && <button type="button" className="modal-del" onClick={remove} disabled={saving}>삭제</button>}
+              <div className="modal-actions-right">
+                <button type="button" className="btn btn-ghost" onClick={() => setEditing(null)} disabled={saving}>취소</button>
+                <button type="button" className="btn" onClick={save} disabled={saving}>{saving ? '저장 중…' : '저장'}</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  )
+}

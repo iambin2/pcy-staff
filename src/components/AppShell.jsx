@@ -5,6 +5,7 @@ import Dashboard from './Dashboard'
 import TeamOrganizer from './TeamOrganizer'
 import InterviewHome from './InterviewHome'
 import RosterHome from './RosterHome'
+import CalendarHome from './CalendarHome'
 
 export default function AppShell({ user, onSignOut }) {
   const [view, setView] = useState('home')
@@ -22,6 +23,7 @@ export default function AppShell({ user, onSignOut }) {
         {view === 'teams' && <TeamOrganizer />}
         {view === 'interview' && <InterviewHome />}
         {view === 'roster' && <RosterHome />}
+        {view === 'calendar' && <CalendarHome />}
       </main>
       <footer className="foot">© {CLUB_NAME} · 임원진 전용</footer>
     </div>

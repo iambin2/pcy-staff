@@ -2,7 +2,7 @@ import CalendarHome from './CalendarHome'
 
 const TOOLS = [
   { key: 'teams', name: '랜덤 조편성기', desc: '정모 조 편성 + 공지 자동 생성' },
-  { key: 'interview', name: '면접 자동 배정', desc: '지원자·면접관 일정 자동 배정' },
+  { key: 'interview', name: '면접 자동 배정', desc: '지원자 및 면접관 일정 자동 배정' },
   { key: 'roster', name: '회원 명부', desc: '기수별 명단 · 자동 최신화' },
 ]
 
@@ -36,7 +36,6 @@ export default function Dashboard({ onOpen }) {
         <span className="ab-icon"><FolderGlyph /></span>
         <span className="ab-text">
           <span className="ab-title">파일 아카이브</span>
-          <span className="ab-desc">클럽 구글 드라이브를 그대로 열람·검색 (조회 전용)</span>
         </span>
         <span className="ab-go">열기 →</span>
       </button>

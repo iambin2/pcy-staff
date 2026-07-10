@@ -20,12 +20,14 @@ export default function AppShell({ user, onSignOut }) {
         showHome={view !== 'home'}
       />
       <main className="main">
-        {view === 'home' && <Dashboard onOpen={setView} />}
-        {view === 'teams' && <TeamOrganizer />}
-        {view === 'interview' && <InterviewHome />}
-        {view === 'roster' && <RosterHome />}
-        {view === 'calendar' && <CalendarHome />}
-        {view === 'archive' && <ArchiveHome />}
+        <div className="view" key={view}>
+          {view === 'home' && <Dashboard onOpen={setView} />}
+          {view === 'teams' && <TeamOrganizer />}
+          {view === 'interview' && <InterviewHome />}
+          {view === 'roster' && <RosterHome />}
+          {view === 'calendar' && <CalendarHome />}
+          {view === 'archive' && <ArchiveHome />}
+        </div>
       </main>
       <footer className="foot">© {CLUB_NAME} · 임원진 전용</footer>
     </div>

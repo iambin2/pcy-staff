@@ -1,19 +1,6 @@
 import { useState } from 'react'
 import { CLUB_NAME, SITE_NAME } from '../config'
 
-function PokeMark({ size = 44 }) {
-  return (
-    <svg width={size} height={size} viewBox="0 0 48 48" aria-hidden="true">
-      <circle cx="24" cy="24" r="22" fill="#fff" stroke="#23201C" strokeWidth="2.5" />
-      <path d="M2.4 24a21.6 21.6 0 0 1 43.2 0Z" fill="#D2352C" />
-      <line x1="2.4" y1="24" x2="16" y2="24" stroke="#23201C" strokeWidth="2.5" />
-      <line x1="32" y1="24" x2="45.6" y2="24" stroke="#23201C" strokeWidth="2.5" />
-      <circle cx="24" cy="24" r="7" fill="#fff" stroke="#23201C" strokeWidth="2.5" />
-      <circle cx="24" cy="24" r="3" fill="#fff" stroke="#23201C" strokeWidth="2.5" />
-    </svg>
-  )
-}
-
 export default function LoginGate({ status, errorMsg, onLogin, onRetry }) {
   const [id, setId] = useState('')
   const [pw, setPw] = useState('')
@@ -29,11 +16,8 @@ export default function LoginGate({ status, errorMsg, onLogin, onRetry }) {
     <div className="gate">
       <div className="gate-card">
         <div className="gate-brand">
-          <PokeMark size={44} />
-          <div>
-            <div className="gate-club">{CLUB_NAME}</div>
-            <h1 className="gate-title">{SITE_NAME}</h1>
-          </div>
+          <div className="brand-mark-lg">POKÉMON · CENTER · YONSEI</div>
+          <div className="brand-sub">{SITE_NAME} · Staff Workspace</div>
         </div>
 
         <p className="gate-sub">

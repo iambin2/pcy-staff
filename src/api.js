@@ -43,3 +43,17 @@ export function listApplicants() {
 export function listInterviewers() {
   return authed('listInterviewers')
 }
+
+// ── 회원 명부 ──
+export function getRoster() {
+  return authed('getRoster')
+}
+export function saveRosterUrl(url) {
+  return authed('saveRosterUrl', { url })
+}
+export function rosterPreview(rows) {
+  return authed('rosterPreview', { rows })
+}
+export function rosterCommit(rows) {
+  return authed('rosterCommit', { rows })
+}

@@ -71,3 +71,11 @@ export function saveTask(task) {
 export function deleteTask(id) {
   return authed('deleteTask', { id })
 }
+
+// ── 파일 아카이브 ──
+export function driveList(folderId) {
+  return authed('driveList', { folderId })
+}
+export function driveSearch(q) {
+  return authed('driveSearch', { q })
+}

@@ -1,5 +1,5 @@
 /**
- * 포켓몬 센터 연세점 · 임원진 업무실 — 문지기 (v2.6)
+ * 포켓몬 센터 연세점 · 임원진 업무실 — 문지기 (v2.7)
  * 로그인 + 면접 접수 + 회원 명부 자동 최신화
  */
 
@@ -27,13 +27,15 @@ function doPost(e) {
       case 'listTasks': return auth(body, cfg, function () { return json({ ok: true, tasks: listTasks() }) })
       case 'saveTask': return auth(body, cfg, function () { return json(saveTask(body.task)) })
       case 'deleteTask': return auth(body, cfg, function () { return json(deleteTask(body.id)) })
+      case 'driveList': return auth(body, cfg, function () { return json(driveList(body.folderId)) })
+      case 'driveSearch': return auth(body, cfg, function () { return json(driveSearch(body.q)) })
       default: return json({ ok: false, message: '알 수 없는 요청입니다.' })
     }
   } catch (err) {
     return json({ ok: false, message: '요청 처리 오류: ' + err })
   }
 }
-function doGet() { return json({ ok: true, message: '임원진 업무실 문지기(v2.6)가 정상 작동 중입니다.' }) }
+function doGet() { return json({ ok: true, message: '임원진 업무실 문지기(v2.7)가 정상 작동 중입니다.' }) }
 
 // ===== 인증 =====
 function doLogin(body, cfg) {
@@ -327,6 +329,47 @@ function deleteTask(id) {
     if (String(vals[r][idIdx]) === String(id)) { sh.deleteRow(r + 1); return { ok: true } }
   }
   return { ok: true }
+}
+
+// ===== 파일 아카이브 (드라이브 탐색) =====
+function fileInfo(f) {
+  return {
+    id: f.getId(),
+    name: f.getName(),
+    type: 'file',
+    url: f.getUrl(),
+    mime: f.getMimeType(),
+    modified: Utilities.formatDate(f.getLastUpdated(), Session.getScriptTimeZone(), 'yyyy-MM-dd'),
+  }
+}
+function driveList(folderId) {
+  var folder = folderId && folderId !== 'root' ? DriveApp.getFolderById(folderId) : DriveApp.getRootFolder()
+  var folders = [], files = [], n = 0
+  var fit = folder.getFolders()
+  while (fit.hasNext() && n < 500) { var d = fit.next(); folders.push({ id: d.getId(), name: d.getName(), type: 'folder' }); n++ }
+  var qit = folder.getFiles()
+  while (qit.hasNext() && n < 500) { files.push(fileInfo(qit.next())); n++ }
+  folders.sort(function (a, b) { return a.name.localeCompare(b.name) })
+  files.sort(function (a, b) { return a.name.localeCompare(b.name) })
+  // 경로(breadcrumb)
+  var path = [], cur = folder, guard = 0
+  while (cur && guard < 50) {
+    path.unshift({ id: cur.getId(), name: cur.getName() })
+    var ps = cur.getParents()
+    cur = ps.hasNext() ? ps.next() : null
+    guard++
+  }
+  return { ok: true, folderId: folder.getId(), path: path, items: folders.concat(files), capped: n >= 500 }
+}
+function driveSearch(q) {
+  q = String(q || '').trim()
+  if (!q) return { ok: true, items: [] }
+  var safe = q.replace(/["\\]/g, ' ')
+  var it = DriveApp.searchFiles('title contains "' + safe + '" and trashed = false')
+  var items = [], n = 0
+  while (it.hasNext() && n < 100) { items.push(fileInfo(it.next())); n++ }
+  items.sort(function (a, b) { return a.name.localeCompare(b.name) })
+  return { ok: true, items: items }
 }
 
 // ===== 토큰 & 공통 =====

@@ -1418,6 +1418,94 @@ textarea:focus {
   }
 }
 
+/* ---------- 파일 아카이브 ---------- */
+.arc-bar {
+  margin-bottom: 12px;
+}
+.arc-search {
+  display: flex;
+  gap: 8px;
+}
+.arc-search input {
+  flex: 1;
+  max-width: 340px;
+  font: inherit;
+  padding: 9px 12px;
+  border: 1.5px solid var(--line);
+  border-radius: 10px;
+}
+.arc-search input:focus {
+  outline: none;
+  border-color: var(--ink);
+}
+.arc-crumb {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px;
+  margin-bottom: 12px;
+  font-size: 14px;
+}
+.arc-sep {
+  color: var(--muted);
+  margin: 0 2px;
+}
+.arc-crumb-link {
+  background: none;
+  border: none;
+  color: var(--red);
+  font: inherit;
+  cursor: pointer;
+  padding: 2px 4px;
+}
+.arc-crumb-cur {
+  color: var(--ink);
+  font-weight: 600;
+  padding: 2px 4px;
+}
+.arc-list {
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  overflow: hidden;
+  background: #fff;
+}
+.arc-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  padding: 11px 16px;
+  border: none;
+  border-bottom: 1px solid var(--line);
+  background: #fff;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  color: var(--ink);
+  text-decoration: none;
+}
+.arc-row:last-child {
+  border-bottom: none;
+}
+.arc-row:hover {
+  background: var(--bg);
+}
+.arc-name {
+  flex: 1;
+  font-size: 14px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.arc-folder .arc-name {
+  font-weight: 500;
+}
+.arc-meta {
+  font-size: 12px;
+  color: var(--muted);
+  flex-shrink: 0;
+}
+
 @keyframes rise {
   from {
     opacity: 0;

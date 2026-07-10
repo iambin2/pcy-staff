@@ -1,17 +1,11 @@
 import { useState } from 'react'
 
-// ── 이름/제약조건 파싱 ────────────────────────────────
+// ── 파싱/유틸 ─────────────────────────────────────────
 function parseNames(text) {
   return text
-    .split(/[\n,]+/)
+    .split(/[\n,\t]+/)
     .map((s) => s.trim())
     .filter(Boolean)
-}
-function parseLines(text) {
-  return text
-    .split(/\n+/)
-    .map((line) => line.split(/[,、]+/).map((s) => s.trim()).filter(Boolean))
-    .filter((arr) => arr.length > 0)
 }
 function shuffle(arr) {
   const a = arr.slice()
@@ -25,31 +19,25 @@ function pad(n) {
   return String(n).padStart(2, '0')
 }
 
-// '다른 조로 분리' 위반 여부: 같은 분리세트에서 서로 다른 두 명이 한 조에 있으면 위반
-function violatesApart(groupMembers, unitMembers, apartSets) {
-  for (const set of apartSets) {
-    const people = new Set(set)
-    const both = new Set()
-    groupMembers.forEach((p) => people.has(p) && both.add(p))
-    unitMembers.forEach((p) => people.has(p) && both.add(p))
-    if (both.size >= 2) return true
+// 두 편 분리: a측 사람과 b측 사람이 같은 조에 있으면 위반
+function violatesApart(groupMembers, unitMembers, apart) {
+  const all = new Set([...groupMembers, ...unitMembers])
+  for (const r of apart) {
+    if (r.a.some((p) => all.has(p)) && r.b.some((p) => all.has(p))) return true
   }
   return false
 }
 
-// ── 핵심 배정 로직 (엑셀 규칙 이식) ────────────────────
-function organize(participants, groupCount, togetherSets, apartSets) {
-  const present = new Set(participants)
-  const together = togetherSets
-    .map((s) => s.filter((n) => present.has(n)))
-    .filter((s) => s.length > 1)
-  const apart = apartSets
-    .map((s) => s.filter((n) => present.has(n)))
-    .filter((s) => s.length > 1)
+function organize(participants, groupCount, togetherSets, apartRules) {
+  const uniq = [...new Set(participants)]
+  const present = new Set(uniq)
+  const together = togetherSets.map((s) => s.filter((x) => present.has(x))).filter((s) => s.length > 1)
+  const apart = apartRules
+    .map((r) => ({ a: r.a.filter((x) => present.has(x)), b: r.b.filter((x) => present.has(x)) }))
+    .filter((r) => r.a.length && r.b.length)
 
-  // 강제 결합: 서로 겹치는 묶음을 union-find로 하나로 합침
   const parent = {}
-  participants.forEach((p) => (parent[p] = p))
+  uniq.forEach((p) => (parent[p] = p))
   const find = (x) => {
     while (parent[x] !== x) {
       parent[x] = parent[parent[x]]
@@ -61,14 +49,12 @@ function organize(participants, groupCount, togetherSets, apartSets) {
     for (let i = 1; i < set.length; i++) parent[find(set[0])] = find(set[i])
   })
 
-  const clusterMap = {}
-  participants.forEach((p) => {
+  const cm = {}
+  uniq.forEach((p) => {
     const r = find(p)
-    ;(clusterMap[r] = clusterMap[r] || []).push(p)
+    ;(cm[r] = cm[r] || []).push(p)
   })
-  const units = Object.values(clusterMap)
-
-  // 묶음(2명 이상)을 먼저 큰 순서로, 나머지는 랜덤으로
+  const units = Object.values(cm)
   const bonded = units.filter((u) => u.length > 1).sort((a, b) => b.length - a.length)
   const singles = shuffle(units.filter((u) => u.length === 1))
   const ordered = [...bonded, ...singles]
@@ -77,7 +63,7 @@ function organize(participants, groupCount, togetherSets, apartSets) {
   for (const unit of ordered) {
     const idx = groups.map((_, i) => i).sort((a, b) => groups[a].length - groups[b].length)
     let chosen = idx.find((i) => !violatesApart(groups[i], unit, apart))
-    if (chosen === undefined) chosen = idx[0] // 다 위반이면 균등 배분 우선
+    if (chosen === undefined) chosen = idx[0]
     groups[chosen].push(...unit)
   }
   return groups
@@ -95,18 +81,70 @@ function makeAnnouncement(groups) {
   return out
 }
 
+// ── 명단에서 사람을 골라 담는 선택기 ──────────────────
+function MemberPicker({ pool, selected, onAdd, onRemove, placeholder = '+ 이름 추가' }) {
+  const available = pool.filter((n) => !selected.includes(n))
+  const label =
+    pool.length === 0 ? '명단 먼저 입력' : available.length === 0 ? '모두 선택됨' : placeholder
+  return (
+    <div className="picker">
+      {selected.map((n) => (
+        <span className="pchip" key={n}>
+          {n}
+          <button type="button" onClick={() => onRemove(n)} aria-label={`${n} 제거`}>
+            ×
+          </button>
+        </span>
+      ))}
+      <select
+        className="picker-select"
+        value=""
+        disabled={available.length === 0}
+        onChange={(e) => {
+          if (e.target.value) onAdd(e.target.value)
+          e.target.value = ''
+        }}
+      >
+        <option value="">{label}</option>
+        {available.map((n) => (
+          <option key={n} value={n}>
+            {n}
+          </option>
+        ))}
+      </select>
+    </div>
+  )
+}
+
 // ── 화면 ──────────────────────────────────────────────
 export default function TeamOrganizer() {
   const [namesText, setNamesText] = useState('')
   const [groupCount, setGroupCount] = useState(4)
-  const [showAdvanced, setShowAdvanced] = useState(false)
-  const [togetherText, setTogetherText] = useState('')
-  const [apartText, setApartText] = useState('')
+  const [togetherGroups, setTogetherGroups] = useState([]) // [[name,...], ...]
+  const [apartRules, setApartRules] = useState([]) // [{a:[],b:[]}, ...]
   const [groups, setGroups] = useState(null)
   const [copied, setCopied] = useState(false)
   const [warning, setWarning] = useState('')
 
-  const participants = parseNames(namesText)
+  const participants = [...new Set(parseNames(namesText))]
+
+  // 묶기 핸들러
+  const addTogetherGroup = () => setTogetherGroups((g) => [...g, []])
+  const removeTogetherGroup = (i) => setTogetherGroups((g) => g.filter((_, idx) => idx !== i))
+  const addToTogether = (i, name) =>
+    setTogetherGroups((g) => g.map((set, idx) => (idx === i ? [...set, name] : set)))
+  const removeFromTogether = (i, name) =>
+    setTogetherGroups((g) => g.map((set, idx) => (idx === i ? set.filter((n) => n !== name) : set)))
+
+  // 분리 핸들러
+  const addApartRule = () => setApartRules((r) => [...r, { a: [], b: [] }])
+  const removeApartRule = (i) => setApartRules((r) => r.filter((_, idx) => idx !== i))
+  const addToApart = (i, side, name) =>
+    setApartRules((r) => r.map((rule, idx) => (idx === i ? { ...rule, [side]: [...rule[side], name] } : rule)))
+  const removeFromApart = (i, side, name) =>
+    setApartRules((r) =>
+      r.map((rule, idx) => (idx === i ? { ...rule, [side]: rule[side].filter((n) => n !== name) } : rule))
+    )
 
   function run() {
     setCopied(false)
@@ -118,12 +156,9 @@ export default function TeamOrganizer() {
     const n = Math.max(1, Math.min(groupCount, participants.length))
     if (n !== groupCount) setGroupCount(n)
     setWarning(
-      participants.length < groupCount
-        ? '참가자보다 조 수가 많아, 조 수를 참가자 수에 맞췄어요.'
-        : ''
+      participants.length < groupCount ? '참가자보다 조 수가 많아, 조 수를 참가자 수에 맞췄어요.' : ''
     )
-    const result = organize(participants, n, parseLines(togetherText), parseLines(apartText))
-    setGroups(result)
+    setGroups(organize(participants, n, togetherGroups, apartRules))
   }
 
   function copyAnnouncement() {
@@ -133,6 +168,8 @@ export default function TeamOrganizer() {
       setTimeout(() => setCopied(false), 2000)
     })
   }
+
+  const emptyPool = participants.length === 0
 
   return (
     <div className="module">
@@ -148,71 +185,107 @@ export default function TeamOrganizer() {
               참가자 명단 <em>({participants.length}명)</em>
             </span>
             <textarea
-              rows={8}
-              placeholder={'한 줄에 한 명씩 입력\n또는 쉼표로 구분\n\n예)\n이제빈\n경재우\n최재혁'}
+              rows={7}
+              placeholder={'엑셀에서 이름을 복사해 붙여넣거나\n한 줄에 한 명씩 입력하세요.'}
               value={namesText}
               onChange={(e) => setNamesText(e.target.value)}
             />
           </label>
 
-          <div className="org-controls">
-            <label className="field field-inline">
-              <span>조 개수</span>
-              <div className="stepper">
-                <button
-                  type="button"
-                  onClick={() => setGroupCount((c) => Math.max(1, c - 1))}
-                  aria-label="조 개수 줄이기"
-                >
-                  −
-                </button>
-                <input
-                  type="number"
-                  min={1}
-                  value={groupCount}
-                  onChange={(e) => setGroupCount(Math.max(1, Number(e.target.value) || 1))}
-                />
-                <button
-                  type="button"
-                  onClick={() => setGroupCount((c) => c + 1)}
-                  aria-label="조 개수 늘리기"
-                >
-                  +
-                </button>
-              </div>
-            </label>
+          <label className="field field-inline">
+            <span>조 개수</span>
+            <div className="stepper">
+              <button type="button" onClick={() => setGroupCount((c) => Math.max(1, c - 1))} aria-label="조 개수 줄이기">
+                −
+              </button>
+              <input
+                type="number"
+                min={1}
+                value={groupCount}
+                onChange={(e) => setGroupCount(Math.max(1, Number(e.target.value) || 1))}
+              />
+              <button type="button" onClick={() => setGroupCount((c) => c + 1)} aria-label="조 개수 늘리기">
+                +
+              </button>
+            </div>
+          </label>
 
-            <button
-              type="button"
-              className="link-toggle"
-              onClick={() => setShowAdvanced((v) => !v)}
-            >
-              {showAdvanced ? '조건 접기' : '조건 추가 (묶기 · 분리)'}
-            </button>
+          {/* 같은 조로 묶기 */}
+          <div className="cond-section">
+            <div className="cond-title">
+              <span>같은 조로 묶기</span>
+              <button type="button" className="cond-add" onClick={addTogetherGroup} disabled={emptyPool}>
+                + 묶음 추가
+              </button>
+            </div>
+            <p className="cond-help">한 묶음에 담은 사람들은 모두 같은 조가 됩니다.</p>
+            {togetherGroups.length === 0 && !emptyPool && (
+              <div className="cond-empty">묶을 사람이 있으면 “+ 묶음 추가”를 눌러 담아 주세요.</div>
+            )}
+            {emptyPool && <div className="cond-empty">참가자 명단을 먼저 입력해 주세요.</div>}
+            {togetherGroups.map((set, i) => (
+              <div className="cond-card" key={i}>
+                <div className="cond-card-head">
+                  <span className="cond-no">묶음 {i + 1}</span>
+                  <button type="button" className="cond-remove" onClick={() => removeTogetherGroup(i)}>
+                    삭제
+                  </button>
+                </div>
+                <MemberPicker
+                  pool={participants}
+                  selected={set}
+                  onAdd={(name) => addToTogether(i, name)}
+                  onRemove={(name) => removeFromTogether(i, name)}
+                />
+              </div>
+            ))}
           </div>
 
-          {showAdvanced && (
-            <div className="org-advanced">
-              <label className="field">
-                <span>같은 조로 묶기</span>
-                <textarea
-                  rows={3}
-                  placeholder={'한 줄에 함께 묶을 사람들을 쉼표로\n예) 이제빈, 경재우'}
-                  value={togetherText}
-                  onChange={(e) => setTogetherText(e.target.value)}
-                />
-              </label>
-              <label className="field">
-                <span>다른 조로 분리</span>
-                <textarea
-                  rows={3}
-                  placeholder={'한 줄에 서로 떨어뜨릴 사람들을 쉼표로\n예) 최재혁, 박시후'}
-                  value={apartText}
-                  onChange={(e) => setApartText(e.target.value)}
-                />
-              </label>
+          {/* 다른 조로 분리 */}
+          <div className="cond-section">
+            <div className="cond-title">
+              <span>다른 조로 분리</span>
+              <button type="button" className="cond-add" onClick={addApartRule} disabled={emptyPool}>
+                + 분리 규칙 추가
+              </button>
             </div>
-          )}
+            <p className="cond-help">왼쪽 사람들과 오른쪽 사람들을 서로 다른 조에 나눕니다. (각 편 안에서는 같은 조가 될 수 있어요.)</p>
+            {apartRules.length === 0 && !emptyPool && (
+              <div className="cond-empty">떼어놓을 사람이 있으면 “+ 분리 규칙 추가”를 눌러 주세요.</div>
+            )}
+            {emptyPool && <div className="cond-empty">참가자 명단을 먼저 입력해 주세요.</div>}
+            {apartRules.map((rule, i) => (
+              <div className="cond-card" key={i}>
+                <div className="cond-card-head">
+                  <span className="cond-no">분리 {i + 1}</span>
+                  <button type="button" className="cond-remove" onClick={() => removeApartRule(i)}>
+                    삭제
+                  </button>
+                </div>
+                <div className="apart-sides">
+                  <div className="apart-side">
+                    <MemberPicker
+                      pool={participants}
+                      selected={rule.a}
+                      onAdd={(name) => addToApart(i, 'a', name)}
+                      onRemove={(name) => removeFromApart(i, 'a', name)}
+                      placeholder="+ 이쪽 편"
+                    />
+                  </div>
+                  <div className="apart-sep" aria-hidden="true">↔</div>
+                  <div className="apart-side">
+                    <MemberPicker
+                      pool={participants}
+                      selected={rule.b}
+                      onAdd={(name) => addToApart(i, 'b', name)}
+                      onRemove={(name) => removeFromApart(i, 'b', name)}
+                      placeholder="+ 저쪽 편"
+                    />
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
 
           {warning && <div className="org-warning">{warning}</div>}
 

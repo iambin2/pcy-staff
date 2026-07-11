@@ -59,7 +59,7 @@ export default function SettlementCalc() {
     <div className="module">
       <div className="module-head">
         <h2>정산 계산기</h2>
-        <p>총액·선입금·인원을 넣으면 후정산·인당 지원금·총 지원금을 계산합니다.</p>
+        <p>총액, 선입금, 인원을 넣으면 후정산, 인당 지원금, 총 지원금을 계산합니다.</p>
       </div>
 
       <div className="setup">

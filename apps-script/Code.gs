@@ -1,5 +1,5 @@
 /**
- * 포켓몬 센터 연세점 · 임원진 업무실 — 문지기 (v2.7)
+ * 포켓몬 센터 연세점 · 임원진 업무실 — 문지기 (v2.8)
  * 로그인 + 면접 접수 + 회원 명부 자동 최신화
  */
 
@@ -29,13 +29,19 @@ function doPost(e) {
       case 'deleteTask': return auth(body, cfg, function () { return json(deleteTask(body.id)) })
       case 'driveList': return auth(body, cfg, function () { return json(driveList(body.folderId)) })
       case 'driveSearch': return auth(body, cfg, function () { return json(driveSearch(body.q)) })
+      case 'driveCreateFolder': return auth(body, cfg, function () { return json(driveCreateFolder(body.parentId, body.name)) })
+      case 'driveRename': return auth(body, cfg, function () { return json(driveRename(body.id, body.isFolder, body.name)) })
+      case 'driveTrash': return auth(body, cfg, function () { return json(driveTrash(body.id, body.isFolder)) })
+      case 'driveMove': return auth(body, cfg, function () { return json(driveMove(body.id, body.isFolder, body.targetId)) })
+      case 'driveCopy': return auth(body, cfg, function () { return json(driveCopy(body.id, body.isFolder)) })
+      case 'driveUpload': return auth(body, cfg, function () { return json(driveUpload(body.parentId, body.name, body.mime, body.data)) })
       default: return json({ ok: false, message: '알 수 없는 요청입니다.' })
     }
   } catch (err) {
     return json({ ok: false, message: '요청 처리 오류: ' + err })
   }
 }
-function doGet() { return json({ ok: true, message: '임원진 업무실 문지기(v2.7)가 정상 작동 중입니다.' }) }
+function doGet() { return json({ ok: true, message: '임원진 업무실 문지기(v2.8)가 정상 작동 중입니다.' }) }
 
 // ===== 인증 =====
 function doLogin(body, cfg) {
@@ -370,6 +376,67 @@ function driveSearch(q) {
   while (it.hasNext() && n < 100) { items.push(fileInfo(it.next())); n++ }
   items.sort(function (a, b) { return a.name.localeCompare(b.name) })
   return { ok: true, items: items }
+}
+
+// ----- 드라이브 편집 (즉시 드라이브 반영) -----
+function driveEntity(id, isFolder) { return isFolder ? DriveApp.getFolderById(id) : DriveApp.getFileById(id) }
+function driveParent(id, isFolder) {
+  var it = driveEntity(id, isFolder).getParents()
+  return it.hasNext() ? it.next() : DriveApp.getRootFolder()
+}
+function driveCreateFolder(parentId, name) {
+  var parent = parentId && parentId !== 'root' ? DriveApp.getFolderById(parentId) : DriveApp.getRootFolder()
+  var f = parent.createFolder(String(name || '새 폴더').trim() || '새 폴더')
+  return { ok: true, id: f.getId(), name: f.getName() }
+}
+function driveRename(id, isFolder, name) {
+  name = String(name || '').trim()
+  if (!name) return { ok: false, message: '이름을 입력해 주세요.' }
+  driveEntity(id, isFolder).setName(name)
+  return { ok: true }
+}
+function driveTrash(id, isFolder) {
+  driveEntity(id, isFolder).setTrashed(true)
+  return { ok: true }
+}
+function driveMove(id, isFolder, targetId) {
+  var target = targetId && targetId !== 'root' ? DriveApp.getFolderById(targetId) : DriveApp.getRootFolder()
+  driveEntity(id, isFolder).moveTo(target)
+  return { ok: true }
+}
+function driveCopy(id, isFolder) {
+  if (!isFolder) {
+    var file = DriveApp.getFileById(id)
+    file.makeCopy(file.getName() + ' (사본)', driveParent(id, false))
+    return { ok: true }
+  }
+  var src = DriveApp.getFolderById(id)
+  var dst = driveParent(id, true).createFolder(src.getName() + ' (사본)')
+  var ctr = { n: 0 }
+  copyFolderInto(src, dst, ctr)
+  return { ok: true, copied: ctr.n, capped: ctr.n >= 300 }
+}
+function copyFolderInto(src, dst, ctr) {
+  var files = src.getFiles()
+  while (files.hasNext() && ctr.n < 300) {
+    var f = files.next()
+    f.makeCopy(f.getName(), dst)
+    ctr.n++
+  }
+  var folders = src.getFolders()
+  while (folders.hasNext() && ctr.n < 300) {
+    var sub = folders.next()
+    var nd = dst.createFolder(sub.getName())
+    ctr.n++
+    copyFolderInto(sub, nd, ctr)
+  }
+}
+function driveUpload(parentId, name, mime, b64) {
+  if (!b64) return { ok: false, message: '파일 데이터가 비었어요.' }
+  var parent = parentId && parentId !== 'root' ? DriveApp.getFolderById(parentId) : DriveApp.getRootFolder()
+  var blob = Utilities.newBlob(Utilities.base64Decode(b64), mime || 'application/octet-stream', name || 'upload')
+  var file = parent.createFile(blob)
+  return { ok: true, id: file.getId(), name: file.getName() }
 }
 
 // ===== 토큰 & 공통 =====

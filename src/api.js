@@ -79,3 +79,23 @@ export function driveList(folderId) {
 export function driveSearch(q) {
   return authed('driveSearch', { q })
 }
+
+// ── 파일 아카이브 편집 ──
+export function driveCreateFolder(parentId, name) {
+  return authed('driveCreateFolder', { parentId, name })
+}
+export function driveRename(id, isFolder, name) {
+  return authed('driveRename', { id, isFolder, name })
+}
+export function driveTrash(id, isFolder) {
+  return authed('driveTrash', { id, isFolder })
+}
+export function driveMove(id, isFolder, targetId) {
+  return authed('driveMove', { id, isFolder, targetId })
+}
+export function driveCopy(id, isFolder) {
+  return authed('driveCopy', { id, isFolder })
+}
+export function driveUpload(parentId, name, mime, data) {
+  return authed('driveUpload', { parentId, name, mime, data })
+}

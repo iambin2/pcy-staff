@@ -6,6 +6,7 @@ import TeamOrganizer from './TeamOrganizer'
 import InterviewHome from './InterviewHome'
 import RosterHome from './RosterHome'
 import ArchiveHome from './ArchiveHome'
+import SettlementCalc from './SettlementCalc'
 
 export default function AppShell({ user, onSignOut }) {
   const [view, setView] = useState('home')
@@ -25,6 +26,7 @@ export default function AppShell({ user, onSignOut }) {
           {view === 'interview' && <InterviewHome />}
           {view === 'roster' && <RosterHome />}
           {view === 'archive' && <ArchiveHome />}
+          {view === 'settlement' && <SettlementCalc />}
         </div>
       </main>
     </div>

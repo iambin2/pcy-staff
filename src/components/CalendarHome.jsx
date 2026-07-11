@@ -3,7 +3,15 @@ import { listTasks, saveTask, deleteTask } from '../api'
 
 const STATUSES = ['예정', '진행중', '완료']
 const PRIORITIES = ['높음', '보통', '낮음']
-const DEPTS = ['임원진 전체', '기획부', '정보부', '총무부']
+const DEPTS = ['임원진 전체', '회장단', '기획부', '인사부', '총무부', '정보부']
+const DEPT_COLORS = {
+  '임원진 전체': '#5b8def',
+  '회장단': '#e8b45a',
+  '기획부': '#45d1a5',
+  '인사부': '#e488b8',
+  '총무부': '#e0864a',
+  '정보부': '#a988f0',
+}
 const WEEK = ['일', '월', '화', '수', '목', '금', '토']
 
 const pad2 = (n) => String(n).padStart(2, '0')
@@ -93,7 +101,7 @@ export default function CalendarHome() {
     <div className="module">
       <div className="module-head">
         <h2>업무 캘린더</h2>
-        <p>마감일 기준으로 업무를 한눈에. 날짜나 업무를 눌러 추가·수정하세요.</p>
+        <p>마감일을 기준으로 업무를 한눈에 확인하세요.</p>
       </div>
 
       <div className="cal-bar">
@@ -104,6 +112,15 @@ export default function CalendarHome() {
           <button type="button" className="cal-today" onClick={() => setYm({ y: now.getFullYear(), m: now.getMonth() })}>오늘</button>
         </div>
         <button type="button" className="btn" onClick={() => setEditing(emptyTask(''))}>＋ 업무 추가</button>
+      </div>
+
+      <div className="cal-legend">
+        {DEPTS.map((d) => (
+          <span className="cal-leg" key={d}>
+            <i style={{ background: DEPT_COLORS[d] }} />
+            {d}
+          </span>
+        ))}
       </div>
 
       <div className="cal-grid">
@@ -121,9 +138,10 @@ export default function CalendarHome() {
                 {dayTasks.slice(0, 4).map((t) => (
                   <button
                     key={t.id}
-                    className={'cal-pill pr-' + t.우선순위 + (t.진행상태 === '완료' ? ' done' : '')}
+                    className={'cal-pill' + (t.진행상태 === '완료' ? ' done' : '')}
+                    style={{ background: DEPT_COLORS[t.담당부서] || '#5b8def', color: '#0b1220' }}
                     onClick={(e) => { e.stopPropagation(); setEditing({ ...t }) }}
-                    title={t.업무명}
+                    title={t.업무명 + ' · ' + t.담당부서}
                   >
                     {t.진행상태 === '완료' ? '✓ ' : ''}{t.업무명}
                   </button>

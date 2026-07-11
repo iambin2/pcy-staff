@@ -4,6 +4,7 @@ const TOOLS = [
   { key: 'teams', name: '랜덤 조편성기', desc: '정모 조 편성 + 공지 자동 생성' },
   { key: 'interview', name: '면접 자동 배정', desc: '지원자 및 면접관 일정 자동 배정' },
   { key: 'roster', name: '회원 명부', desc: '기수별 명단 · 자동 최신화' },
+  { key: 'settlement', name: '정산 계산기', desc: '후정산·지원금 자동 계산' },
 ]
 
 function FolderGlyph() {
@@ -27,7 +28,7 @@ export default function Dashboard({ onOpen }) {
               <h3>{m.name}</h3>
             </div>
             <p className="card-desc">{m.desc}</p>
-            <div className="card-foot card-foot-go">열기 →</div>
+            <div className="card-foot card-foot-go">열기 <span className="go-arrow">→</span></div>
           </button>
         ))}
       </section>
@@ -37,7 +38,7 @@ export default function Dashboard({ onOpen }) {
         <span className="ab-text">
           <span className="ab-title">파일 아카이브</span>
         </span>
-        <span className="ab-go">열기 →</span>
+        <span className="ab-go">열기 <span className="go-arrow">→</span></span>
       </button>
     </>
   )

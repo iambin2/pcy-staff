@@ -13,7 +13,7 @@ export default function InterviewHome() {
     <div className="module">
       <div className="module-head">
         <h2>면접 자동 배정</h2>
-        <p>날짜·시간대를 정하고 구글폼을 만들면, 지원자·면접관 응답이 모여 자동 배정됩니다.</p>
+        <p>날짜와 시간대를 정하고 구글폼을 생성하면, 지원자와 면접자의 응답을 취합해 일정을 자동 배정합니다.</p>
       </div>
 
       <div className="tabs">

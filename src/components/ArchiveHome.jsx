@@ -185,7 +185,7 @@ export default function ArchiveHome() {
     <div className="module">
       <div className="module-head">
         <h2>파일 아카이브</h2>
-        <p>클럽 구글 드라이브를 열람·검색하고, 폴더·파일을 바로 편집할 수 있어요. (변경은 드라이브에 즉시 반영)</p>
+        <p>동아리 공식 구글 계정 드라이브를 열람 및 검색하고, 폴더와 파일을 바로 편집할 수 있어요. (변경은 드라이브에 즉시 반영)</p>
       </div>
 
       <div className="arc-bar">
@@ -269,7 +269,7 @@ export default function ArchiveHome() {
       {/* 항목 메뉴 / 이름변경 / 삭제 */}
       {action && (
         <div className="modal-overlay" onClick={() => setAction(null)}>
-          <div className="modal" onClick={(e) => e.stopPropagation()}>
+          <div className={'modal' + (action.mode === 'menu' ? ' modal-menu' : '')} onClick={(e) => e.stopPropagation()}>
             {action.mode === 'menu' && (
               <>
                 <h3 className="arc-menu-title">{action.item.name}</h3>

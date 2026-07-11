@@ -490,6 +490,10 @@ input:disabled, textarea:disabled { opacity: 0.6; }
 .arc-menu button { text-align: left; background: transparent; border: none; color: var(--ink); font: inherit; font-size: 14.5px; padding: 11px 12px; border-radius: 9px; cursor: pointer; transition: background var(--dur) var(--ease); }
 .arc-menu button:hover { background: var(--surface-2); }
 .arc-menu-danger { color: var(--danger) !important; }
+.modal-menu { max-width: 264px; padding: 14px; gap: 6px; }
+.modal-menu .arc-menu-title { font-size: 14px; margin: 2px 4px 8px; padding-bottom: 8px; border-bottom: 1px solid var(--line); color: var(--muted); }
+.modal-menu .arc-menu button { font-size: 14px; padding: 9px 10px; }
+.modal-menu .modal-actions { margin-top: 4px; }
 .arc-crumb { display: flex; flex-wrap: wrap; align-items: center; gap: 4px; margin-bottom: 12px; font-size: 14px; }
 .arc-sep { color: var(--muted); margin: 0 2px; }
 .arc-crumb-link { background: none; border: none; color: var(--brand-bright); font: inherit; cursor: pointer; padding: 2px 4px; transition: color var(--dur) var(--ease); }

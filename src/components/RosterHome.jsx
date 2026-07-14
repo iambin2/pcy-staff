@@ -3,6 +3,40 @@ import { getRoster, saveRosterUrl, rosterPreview, rosterCommit, rosterView } fro
 
 const COLS = ['이름', '성별', '생년월일', '단과대학', '학과', '학번', '전화번호', '최애포켓몬', '비고']
 
+// 조회 표: 시트가 어떻든 항상 이 순서·정렬·너비로 통일해서 그림
+const VIEW_COLS = [
+  { key: '회원번호', align: 'center', w: '92px' },
+  { key: '시작기수', align: 'center', w: '80px' },
+  { key: '이름', align: 'left', w: '90px' },
+  { key: '성별', align: 'center', w: '60px' },
+  { key: '생년월일', align: 'center', w: '110px' },
+  { key: '단과대학', align: 'left', w: '150px' },
+  { key: '학과', align: 'left', w: '150px' },
+  { key: '학번', align: 'center', w: '120px' },
+  { key: '전화번호', align: 'center', w: '135px' },
+  { key: '최애포켓몬', align: 'left', w: '130px' },
+  { key: '비고', align: 'center', w: '80px' },
+]
+// 생년월일 표기 통일 (2003-03-08)
+function fmtDate(v) {
+  const s = String(v || '').trim()
+  const m = s.match(/(\d{4})[-./\s]+(\d{1,2})[-./\s]+(\d{1,2})/)
+  if (!m) return s
+  return `${m[1]}-${String(m[2]).padStart(2, '0')}-${String(m[3]).padStart(2, '0')}`
+}
+// 전화번호 표기 통일 (010-1234-5678)
+function fmtPhone(v) {
+  const d = String(v || '').replace(/\D/g, '')
+  if (d.length === 11) return `${d.slice(0, 3)}-${d.slice(3, 7)}-${d.slice(7)}`
+  if (d.length === 10) return `${d.slice(0, 3)}-${d.slice(3, 6)}-${d.slice(6)}`
+  return String(v || '').trim()
+}
+function cellValue(key, raw) {
+  if (key === '생년월일') return fmtDate(raw)
+  if (key === '전화번호') return fmtPhone(raw)
+  return String(raw ?? '').trim()
+}
+
 function parseRoster(text) {
   const lines = text.split(/\n+/).filter((l) => l.trim())
   if (!lines.length) return { rows: [], hasHeader: false }
@@ -137,19 +171,31 @@ export default function RosterHome() {
             ))}
           </div>
           <input className="rv-search" type="text" placeholder="이름·학번·학과 등으로 검색" value={query} onChange={(e) => setQuery(e.target.value)} />
-          {sheet && (
-            <div className="rv-table-wrap">
-              <table className="rv-table">
-                <thead><tr>{sheet.header.map((h, i) => <th key={i}>{h}</th>)}</tr></thead>
-                <tbody>
-                  {filteredRows.map((row, ri) => (
-                    <tr key={ri}>{sheet.header.map((_, ci) => <td key={ci}>{row[ci] || ''}</td>)}</tr>
-                  ))}
-                </tbody>
-              </table>
-              {filteredRows.length === 0 && <div className="rv-empty">해당하는 인원이 없어요.</div>}
-            </div>
-          )}
+          {sheet && (() => {
+            // 시트 헤더 → 고정 스키마 매핑 (없는 열은 자동 생략)
+            const cols = VIEW_COLS.filter((c) => sheet.header.indexOf(c.key) >= 0)
+            const idxOf = (k) => sheet.header.indexOf(k)
+            return (
+              <div className="rv-table-wrap">
+                <table className="rv-table">
+                  <colgroup>{cols.map((c) => <col key={c.key} style={{ width: c.w }} />)}</colgroup>
+                  <thead>
+                    <tr>{cols.map((c) => <th key={c.key} className={'al-' + c.align}>{c.key}</th>)}</tr>
+                  </thead>
+                  <tbody>
+                    {filteredRows.map((row, ri) => (
+                      <tr key={ri}>
+                        {cols.map((c) => (
+                          <td key={c.key} className={'al-' + c.align}>{cellValue(c.key, row[idxOf(c.key)])}</td>
+                        ))}
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+                {filteredRows.length === 0 && <div className="rv-empty">해당하는 인원이 없어요.</div>}
+              </div>
+            )
+          })()}
         </div>
       ) : (
         <div className="cond-empty">아래에서 기존 명부 시트를 연결하면 여기에 명단이 표시돼요.</div>

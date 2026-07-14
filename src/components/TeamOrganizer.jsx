@@ -192,7 +192,7 @@ export default function TeamOrganizer() {
             />
           </label>
 
-          <label className="field field-inline">
+          <div className="field field-inline">
             <span>조 개수</span>
             <div className="stepper">
               <button type="button" onClick={() => setGroupCount((c) => Math.max(1, c - 1))} aria-label="조 개수 줄이기">
@@ -201,6 +201,7 @@ export default function TeamOrganizer() {
               <input
                 type="number"
                 min={1}
+                aria-label="조 개수"
                 value={groupCount}
                 onChange={(e) => setGroupCount(Math.max(1, Number(e.target.value) || 1))}
               />
@@ -208,7 +209,7 @@ export default function TeamOrganizer() {
                 +
               </button>
             </div>
-          </label>
+          </div>
 
           {/* 같은 조로 묶기 */}
           <div className="cond-section">

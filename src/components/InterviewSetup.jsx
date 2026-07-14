@@ -26,8 +26,8 @@ function slotTimes(block, interval) {
 }
 
 export default function InterviewSetup() {
-  const [config, setConfig] = useState({ interval: 20, days: [], applicantSheetUrl: '' })
-  const [forms, setForms] = useState({ interviewerUrl: '' })
+  const [config, setConfig] = useState({ interval: 20, days: [], applicantSheetUrl: '', tier: '' })
+  const [forms, setForms] = useState({ interviewerUrl: '', folder: '' })
   const [status, setStatus] = useState('loading')
   const [saving, setSaving] = useState(false)
   const [creating, setCreating] = useState(false)
@@ -37,7 +37,7 @@ export default function InterviewSetup() {
     getInterviewConfig()
       .then((r) => {
         if (r.ok) {
-          setConfig(r.config?.days ? { applicantSheetUrl: '', ...r.config } : { interval: 20, days: [], applicantSheetUrl: '' })
+          setConfig(r.config?.days ? { applicantSheetUrl: '', tier: '', ...r.config } : { interval: 20, days: [], applicantSheetUrl: '', tier: '' })
           if (r.forms) setForms(r.forms)
           setStatus('ready')
         } else {
@@ -53,6 +53,7 @@ export default function InterviewSetup() {
 
   const setIntervalV = (v) => setConfig((c) => ({ ...c, interval: Math.max(1, Number(v) || 1) }))
   const setApplicantUrl = (v) => setConfig((c) => ({ ...c, applicantSheetUrl: v }))
+  const setTier = (v) => setConfig((c) => ({ ...c, tier: v.replace(/\D/g, '') }))
   const addDay = () => setConfig((c) => ({ ...c, days: [...c.days, DEFAULT_DAY()] }))
   const removeDay = (i) => setConfig((c) => ({ ...c, days: c.days.filter((_, x) => x !== i) }))
   const setDate = (i, date) =>
@@ -97,13 +98,14 @@ export default function InterviewSetup() {
     setSaving(false)
   }
   async function makeForms() {
+    if (!config.tier) { setMsg('면접 기수를 입력해 주세요.'); return }
     setCreating(true)
     setMsg('')
     try {
       await saveInterviewConfig(config)
-      const r = await createInterviewForms()
+      const r = await createInterviewForms(config.tier)
       if (r.ok) {
-        setForms({ interviewerUrl: r.interviewerUrl })
+        setForms({ interviewerUrl: r.interviewerUrl, folder: r.folder || '' })
         setMsg('면접관 폼이 준비됐어요. 아래 링크를 면접관들에게 공유하세요.')
       } else {
         setMsg(r.message || '폼 생성 실패')
@@ -119,10 +121,20 @@ export default function InterviewSetup() {
 
   return (
     <div className="setup">
-      <div className="field field-inline">
-        <span>면접 간격 (분)</span>
-        <input className="num-sm" type="number" min={1} value={config.interval} onChange={(e) => setIntervalV(e.target.value)} />
+      <div className="setup-top">
+        <label className="field field-inline">
+          <span>면접 기수</span>
+          <div className="tier-input">
+            <input className="num-sm" inputMode="numeric" placeholder="8" value={config.tier} onChange={(e) => setTier(e.target.value)} />
+            <span className="tier-suffix">기</span>
+          </div>
+        </label>
+        <label className="field field-inline">
+          <span>면접 간격 (분)</span>
+          <input className="num-sm" type="number" min={1} value={config.interval} onChange={(e) => setIntervalV(e.target.value)} />
+        </label>
       </div>
+      <p className="hint">폼은 드라이브 <b>2. 모집 및 공채 › 부원 면접 › {config.tier ? config.tier + '기' : 'N기'}</b> 폴더에 저장돼요. (폴더가 없으면 자동 생성)</p>
 
       {config.days.length === 0 && (
         <div className="cond-empty">“+ 날짜 추가”를 눌러 면접 날짜와 시간 구간을 정해 주세요.</div>
@@ -164,7 +176,7 @@ export default function InterviewSetup() {
         <button type="button" className="btn btn-ghost" onClick={save} disabled={saving}>
           {saving ? '저장 중…' : '설정 저장'}
         </button>
-        <button type="button" className="btn" onClick={makeForms} disabled={creating || totalSlots === 0}>
+        <button type="button" className="btn" onClick={makeForms} disabled={creating || totalSlots === 0 || !config.tier}>
           {creating ? '폼 만드는 중…' : '면접관 폼 만들기 / 갱신'}
         </button>
       </div>
@@ -175,6 +187,7 @@ export default function InterviewSetup() {
             <span>면접관용 폼 (면접관들에게 공유)</span>
             <a href={forms.interviewerUrl} target="_blank" rel="noreferrer">{forms.interviewerUrl}</a>
           </div>
+          {forms.folder && <p className="hint">저장 위치: <b>{forms.folder}</b></p>}
           <p className="hint">위에서 정한 시각들이 체크박스로 들어가 있어요. 시간대를 바꾸면 “갱신”을 다시 눌러 주세요.</p>
         </div>
       )}

@@ -1,5 +1,5 @@
 /**
- * 포켓몬 센터 연세점 · 임원진 업무실 — 문지기 (v2.8)
+ * 포켓몬 센터 연세점 · 임원진 업무실 — 문지기 (v2.9)
  * 로그인 + 면접 접수 + 회원 명부 자동 최신화
  */
 
@@ -16,7 +16,7 @@ function doPost(e) {
       case 'session': return doSession(body, cfg)
       case 'getConfig': return auth(body, cfg, function () { return json(okConfig()) })
       case 'saveConfig': return auth(body, cfg, function () { return json(saveInterviewConfig(body.config)) })
-      case 'createForms': return auth(body, cfg, function () { return json(createOrUpdateInterviewerForm()) })
+      case 'createForms': return auth(body, cfg, function () { return json(createOrUpdateInterviewerForm(body.tier)) })
       case 'listApplicants': return auth(body, cfg, function () { return json({ ok: true, rows: readApplicants() }) })
       case 'listInterviewers': return auth(body, cfg, function () { return json({ ok: true, rows: readInterviewers() }) })
       case 'getRoster': return auth(body, cfg, function () { return json({ ok: true, rosterSheetUrl: props().getProperty('ROSTER_SHEET_URL') || '' }) })
@@ -41,7 +41,7 @@ function doPost(e) {
     return json({ ok: false, message: '요청 처리 오류: ' + err })
   }
 }
-function doGet() { return json({ ok: true, message: '임원진 업무실 문지기(v2.8)가 정상 작동 중입니다.' }) }
+function doGet() { return json({ ok: true, message: '임원진 업무실 문지기(v2.9)가 정상 작동 중입니다.' }) }
 
 // ===== 인증 =====
 function doLogin(body, cfg) {
@@ -91,23 +91,30 @@ function toMin(t) { var m = /^(\d{1,2}):(\d{2})$/.exec(String(t || '')); return 
 function pad2(n) { n = String(n); return n.length < 2 ? '0' + n : n }
 function pad3(n) { n = String(n); while (n.length < 3) n = '0' + n; return n }
 
-function createOrUpdateInterviewerForm() {
+function createOrUpdateInterviewerForm(tier) {
   var labels = slotLabels()
   if (!labels.length) return { ok: false, message: '먼저 면접 시간대를 저장해 주세요.' }
+  tier = parseInt(tier, 10)
+  if (!tier || tier < 1) return { ok: false, message: '면접 기수를 입력해 주세요.' }
   var id = props().getProperty('FORM_INTERVIEWER_ID'), form = null
   if (id) { try { form = FormApp.openById(id) } catch (e) { form = null } }
   if (!form) {
-    form = FormApp.create('면접관 가용 시간')
+    form = FormApp.create(tier + '기 면접관 가용 시간')
     form.setDescription('면접 진행이 가능한 시간을 모두 선택해 주세요.')
     form.addTextItem().setTitle('이름').setRequired(true)
     form.addCheckboxItem().setTitle('가능한 시간').setRequired(true)
     props().setProperty('FORM_INTERVIEWER_ID', form.getId())
+  } else {
+    form.setTitle(tier + '기 면접관 가용 시간')
   }
+  // 부원 면접 / N기 폴더로 이동 (없으면 생성)
+  moveToFolder(form.getId(), interviewTierFolder(tier))
   var items = form.getItems(FormApp.ItemType.CHECKBOX)
   for (var i = 0; i < items.length; i++) if (items[i].getTitle() === '가능한 시간') { items[i].asCheckboxItem().setChoiceValues(labels); break }
   var url = form.getPublishedUrl()
   props().setProperty('FORM_INTERVIEWER_URL', url)
-  return { ok: true, interviewerUrl: url }
+  props().setProperty('INTERVIEW_TIER', String(tier))
+  return { ok: true, interviewerUrl: url, tier: tier, folder: '2. 모집 및 공채 / 부원 면접 / ' + tier + '기' }
 }
 function readInterviewers() {
   var id = props().getProperty('FORM_INTERVIEWER_ID'); if (!id) return []
@@ -224,12 +231,8 @@ function rosterCommit(rows) {
   var tabs = readRosterTabs(url)
   var res = classifyRoster(tabs, rows)
 
-  var stamp = Utilities.formatDate(new Date(), Session.getScriptTimeZone(), 'yyyyMMdd')
-  var newSs = SpreadsheetApp.create('포센연 ' + res.newTier + '기 명부 (' + stamp + ')')
-  try {
-    var folderIt = DriveApp.getFileById(src.getId()).getParents()
-    if (folderIt.hasNext()) DriveApp.getFileById(newSs.getId()).moveTo(folderIt.next())
-  } catch (e) { /* 폴더 이동 실패해도 파일은 생성됨 */ }
+  var newSs = SpreadsheetApp.create('포센연 ' + res.newTier + '기 명부')
+  moveToFolder(newSs.getId(), rosterFolder())
 
   var order = Object.keys(res.newTabs).sort(function (a, b) { return parseInt(a) - parseInt(b) })
   var first = true
@@ -243,7 +246,7 @@ function rosterCommit(rows) {
   // 새로 만든 명부를 '현재 명부'로 자동 연결
   props().setProperty('ROSTER_SHEET_URL', newSs.getUrl())
 
-  return { ok: true, url: newSs.getUrl(), newTier: res.newTier, summary: res.summary }
+  return { ok: true, url: newSs.getUrl(), newTier: res.newTier, summary: res.summary, folder: '3. 운영 / 명부' }
 }
 
 // 현재 연결된 명부를 조회용으로 읽어옴 (기수별 탭 + OB 탭)
@@ -335,6 +338,32 @@ function deleteTask(id) {
     if (String(vals[r][idIdx]) === String(id)) { sh.deleteRow(r + 1); return { ok: true } }
   }
   return { ok: true }
+}
+
+
+// ===== 드라이브 경로 헬퍼 =====
+var PATH_INTERVIEW = ['2. 모집 및 공채', '부원 면접']   // + N기
+var PATH_ROSTER = ['3. 운영', '명부']
+
+// 경로를 따라 폴더를 찾고, 없으면 만든다
+function ensurePath(parts) {
+  var folder = DriveApp.getRootFolder()
+  for (var i = 0; i < parts.length; i++) {
+    var name = parts[i]
+    var it = folder.getFoldersByName(name)
+    folder = it.hasNext() ? it.next() : folder.createFolder(name)
+  }
+  return folder
+}
+// 해당 기수 폴더 (부원 면접/N기) — 없으면 생성
+function interviewTierFolder(tier) {
+  return ensurePath(PATH_INTERVIEW.concat([String(tier) + '기']))
+}
+function rosterFolder() {
+  return ensurePath(PATH_ROSTER)
+}
+function moveToFolder(fileId, folder) {
+  try { DriveApp.getFileById(fileId).moveTo(folder) } catch (e) { /* 이동 실패해도 파일은 존재 */ }
 }
 
 // ===== 파일 아카이브 (드라이브 탐색) =====

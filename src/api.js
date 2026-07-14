@@ -34,8 +34,8 @@ export function getInterviewConfig() {
 export function saveInterviewConfig(config) {
   return authed('saveConfig', { config })
 }
-export function createInterviewForms() {
-  return authed('createForms')
+export function createInterviewForms(tier) {
+  return authed('createForms', { tier })
 }
 export function listApplicants() {
   return authed('listApplicants')

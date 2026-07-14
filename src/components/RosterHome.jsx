@@ -219,7 +219,7 @@ export default function RosterHome() {
           <label className="field" style={{ marginTop: '14px' }}>
             <span>이번 기수 전원 명단 <em>({parsed.rows.length}명)</em></span>
             <textarea rows={7} placeholder={'엑셀 명부에서 머리글 줄 포함해 복사·붙여넣기\n(이름·성별·생년월일·단과대학·학과·학번·전화번호·최애포켓몬·비고)'} value={text} onChange={(e) => setText(e.target.value)} />
-            <small className="hint">연장 부원도 반드시 포함(빠지면 삭제). 비고 “군휴학”은 OB가 아니라 새 명단에 없으면 삭제되니 주의.</small>
+            <small className="hint">연장 부원도 반드시 포함(빠지면 삭제). 비고 “군휴학”은 OB가 아니라 새 명단에 없으면 삭제되니 주의. 새 명부는 <b>3. 운영 › 명부</b> 폴더에 <b>포센연 N기 명부</b>로 저장돼요.</small>
           </label>
 
           {msg && <div className="org-warning" style={{ marginTop: '12px' }}>{msg}</div>}
@@ -256,6 +256,7 @@ export default function RosterHome() {
                 <span>새 {result.newTier}기 명부 완성 (신입 {result.summary.신입} · 퇴부 {result.summary.퇴부} · OB {result.summary.ob}) — 이제 현재 명부로 연결됐어요</span>
                 <a href={result.url} target="_blank" rel="noreferrer">{result.url}</a>
               </div>
+              <p className="hint">파일명 <b>포센연 {result.newTier}기 명부</b> · 저장 위치 <b>{result.folder || '3. 운영 / 명부'}</b></p>
             </div>
           )}
         </div>

@@ -135,7 +135,7 @@ export default function CalendarHome() {
             <div key={i} className={'cal-cell' + (k === todayKey ? ' cal-today-cell' : '')} onClick={() => setEditing(emptyTask(k))}>
               <div className={'cal-day' + (d.getDay() === 0 ? ' cal-sun' : d.getDay() === 6 ? ' cal-sat' : '')}>{d.getDate()}</div>
               <div className="cal-tasks">
-                {dayTasks.slice(0, 4).map((t) => (
+                {dayTasks.map((t) => (
                   <button
                     key={t.id}
                     className={'cal-pill' + (t.진행상태 === '완료' ? ' done' : '')}
@@ -146,7 +146,6 @@ export default function CalendarHome() {
                     {t.진행상태 === '완료' ? '✓ ' : ''}{t.업무명}
                   </button>
                 ))}
-                {dayTasks.length > 4 && <div className="cal-more">+{dayTasks.length - 4}</div>}
               </div>
             </div>
           )

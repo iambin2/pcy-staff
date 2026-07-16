@@ -244,6 +244,42 @@ select option { background: var(--surface-2); color: var(--ink); }
 .sel-opt:hover { background: var(--surface-3); }
 .sel-opt-on { color: var(--brand-bright); font-weight: 600; }
 .sel-check { color: var(--brand-bright); font-size: 12px; flex-shrink: 0; }
+
+/* ---------- 커스텀 날짜 선택 ---------- */
+.dp { position: relative; }
+.dp-trigger {
+  width: 100%; display: flex; align-items: center; justify-content: space-between; gap: 8px;
+  font: inherit; padding: 11px 13px; border: 1px solid var(--line-soft); border-radius: 10px;
+  background: var(--surface-2); color: var(--ink); cursor: pointer; text-align: left;
+  transition: background var(--dur) var(--ease), box-shadow var(--dur) var(--ease), border-color var(--dur) var(--ease);
+}
+.dp-trigger:hover { background: var(--surface-3); }
+.dp-open .dp-trigger { border-color: transparent; background: var(--surface-3); box-shadow: 0 0 0 1px rgba(91, 141, 239, 0.35), 0 0 18px rgba(91, 141, 239, 0.28); }
+.dp-ph { color: var(--muted); }
+.dp-ic { color: var(--muted); flex-shrink: 0; transition: color var(--dur) var(--ease); }
+.dp-open .dp-ic { color: var(--brand-bright); }
+.dp-pop {
+  position: absolute; top: calc(100% + 6px); left: 0; z-index: 20; min-width: 248px;
+  background: var(--surface-2); border: 1px solid var(--line); border-radius: 12px; padding: 12px;
+  box-shadow: var(--shadow); transform-origin: top center; animation: selIn 0.18s var(--ease) both;
+}
+.dp-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; }
+.dp-head button { width: 28px; height: 28px; border: none; background: transparent; color: var(--ink); border-radius: 8px; font-size: 17px; cursor: pointer; transition: background var(--dur) var(--ease); }
+.dp-head button:hover { background: var(--surface-3); }
+.dp-title { font-size: 14px; font-weight: 600; font-family: var(--font-mono); }
+.dp-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 2px; }
+.dp-wd { margin-bottom: 4px; }
+.dp-wdc { text-align: center; font-size: 11px; color: var(--muted); padding: 2px 0; }
+.dp-empty { height: 30px; }
+.dp-day { height: 30px; border: none; background: transparent; color: var(--ink); font: inherit; font-size: 13px; border-radius: 7px; cursor: pointer; transition: background var(--dur) var(--ease), color var(--dur) var(--ease); }
+.dp-day:hover { background: var(--surface-3); }
+.dp-sun { color: var(--danger); }
+.dp-sat { color: var(--brand-bright); }
+.dp-today { color: var(--brand-bright); font-weight: 700; }
+.dp-sel, .dp-sel.dp-sun, .dp-sel.dp-sat, .dp-sel.dp-today { background: var(--brand); color: #08111f; font-weight: 600; }
+.dp-foot { display: flex; gap: 6px; margin-top: 8px; padding-top: 8px; border-top: 1px solid var(--line); }
+.dp-foot-btn { background: transparent; border: none; color: var(--brand-bright); font: inherit; font-size: 13px; cursor: pointer; padding: 4px 9px; border-radius: 7px; transition: background var(--dur) var(--ease); }
+.dp-foot-btn:hover { background: var(--surface-3); }
 input:disabled, textarea:disabled { opacity: 0.6; }
 .field-error { font-size: 13.5px; color: var(--danger); background: var(--danger-soft); padding: 9px 12px; border-radius: 9px; animation: pop var(--dur) var(--ease) both; }
 

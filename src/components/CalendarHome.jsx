@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import { listTasks, saveTask, deleteTask } from '../api'
 import Select from './Select'
+import DatePicker from './DatePicker'
 
 const STATUSES = ['예정', '진행중', '완료']
 const PRIORITIES = ['높음', '보통', '낮음']
@@ -193,12 +194,12 @@ export default function CalendarHome() {
               <input type="text" value={editing.업무명} onChange={(e) => set('업무명', e.target.value)} autoFocus />
             </label>
             <div className="modal-row">
-              <label className="field"><span>시작일 <em style={{ color: 'var(--muted)' }}>(선택)</em></span>
-                <input type="date" value={editing.시작일} onChange={(e) => set('시작일', e.target.value)} />
-              </label>
-              <label className="field"><span>마감일</span>
-                <input type="date" value={editing.마감일} onChange={(e) => set('마감일', e.target.value)} />
-              </label>
+              <div className="field"><span>시작일 <em style={{ color: 'var(--muted)' }}>(선택)</em></span>
+                <DatePicker value={editing.시작일} onChange={(v) => set('시작일', v)} ariaLabel="시작일" allowClear />
+              </div>
+              <div className="field"><span>마감일</span>
+                <DatePicker value={editing.마감일} onChange={(v) => set('마감일', v)} ariaLabel="마감일" />
+              </div>
             </div>
             <p className="hint" style={{ marginTop: '-4px' }}>시작일을 넣으면 시작일~마감일이 막대로 이어져 표시돼요.</p>
             <div className="modal-row">

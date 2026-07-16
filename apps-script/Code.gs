@@ -1,5 +1,5 @@
 /**
- * 포켓몬 센터 연세점 · 임원진 업무실 — 문지기 (v2.9)
+ * 포켓몬 센터 연세점 · 임원진 업무실 — 문지기 (v3.0)
  * 로그인 + 면접 접수 + 회원 명부 자동 최신화
  */
 
@@ -41,7 +41,7 @@ function doPost(e) {
     return json({ ok: false, message: '요청 처리 오류: ' + err })
   }
 }
-function doGet() { return json({ ok: true, message: '임원진 업무실 문지기(v2.9)가 정상 작동 중입니다.' }) }
+function doGet() { return json({ ok: true, message: '임원진 업무실 문지기(v3.0)가 정상 작동 중입니다.' }) }
 
 // ===== 인증 =====
 function doLogin(body, cfg) {
@@ -290,7 +290,7 @@ function writeRosterTab(sheet, people, ob) {
 }
 
 // ===== 업무 캘린더 =====
-var TASK_COLS = ['id', '진행상태', '우선순위', '업무명', '마감일', '담당부서', '담당자', '메모']
+var TASK_COLS = ['id', '진행상태', '우선순위', '업무명', '시작일', '마감일', '담당부서', '담당자', '메모']
 function taskSheet() {
   var ss = SpreadsheetApp.getActive()
   var sh = ss.getSheetByName('업무')
@@ -298,6 +298,15 @@ function taskSheet() {
     sh = ss.insertSheet('업무')
     sh.getRange(1, 1, 1, TASK_COLS.length).setValues([TASK_COLS])
     sh.setFrozenRows(1)
+    return sh
+  }
+  // 기존 시트에 '시작일' 열이 없으면 '마감일' 앞에 자동 삽입
+  var head = sh.getRange(1, 1, 1, sh.getLastColumn()).getValues()[0].map(function (x) { return String(x).trim() })
+  if (head.indexOf('시작일') < 0) {
+    var dueAt = head.indexOf('마감일')
+    var insertAt = dueAt >= 0 ? dueAt + 1 : sh.getLastColumn() + 1
+    sh.insertColumnBefore(insertAt)
+    sh.getRange(1, insertAt).setValue('시작일')
   }
   return sh
 }

@@ -473,6 +473,13 @@ input:disabled, textarea:disabled { opacity: 0.6; }
 .cal-pill { flex-shrink: 0; border: none; text-align: left; font: inherit; font-size: 11.5px; font-weight: 500; padding: 2px 7px; border-radius: 5px; cursor: pointer; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; transition: transform var(--dur) var(--ease), filter var(--dur) var(--ease); animation: pop 0.24s var(--ease) both; }
 .cal-pill:hover { transform: translateX(2px); filter: brightness(1.08); }
 .cal-pill.done { opacity: 0.45; text-decoration: line-through; }
+/* 기간 막대 세그먼트 */
+.cal-seg { flex-shrink: 0; height: 19px; line-height: 15px; box-sizing: border-box; border: none; text-align: left; font: inherit; font-size: 11.5px; font-weight: 500; padding: 2px 7px; border-radius: 0; cursor: pointer; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; transition: filter var(--dur) var(--ease); animation: pop 0.24s var(--ease) both; }
+.cal-seg.r-l { border-top-left-radius: 5px; border-bottom-left-radius: 5px; }
+.cal-seg.r-r { border-top-right-radius: 5px; border-bottom-right-radius: 5px; }
+.cal-seg:hover { filter: brightness(1.08); }
+.cal-seg.done { opacity: 0.45; text-decoration: line-through; }
+.cal-lane-empty { flex-shrink: 0; height: 19px; }
 .cal-more { font-size: 11px; color: var(--muted); padding-left: 4px; font-family: var(--font-mono); }
 
 /* 모달 */

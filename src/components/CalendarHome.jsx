@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import { listTasks, saveTask, deleteTask } from '../api'
+import Select from './Select'
 
 const STATUSES = ['예정', '진행중', '완료']
 const PRIORITIES = ['높음', '보통', '낮음']
@@ -202,14 +203,14 @@ export default function CalendarHome() {
             <p className="hint" style={{ marginTop: '-4px' }}>시작일을 넣으면 시작일~마감일이 막대로 이어져 표시돼요.</p>
             <div className="modal-row">
               <label className="field"><span>진행상태</span>
-                <select value={editing.진행상태} onChange={(e) => set('진행상태', e.target.value)}>{STATUSES.map((s) => <option key={s}>{s}</option>)}</select>
+                <Select value={editing.진행상태} onChange={(v) => set('진행상태', v)} options={STATUSES} ariaLabel="진행상태" />
               </label>
               <label className="field"><span>우선순위</span>
-                <select value={editing.우선순위} onChange={(e) => set('우선순위', e.target.value)}>{PRIORITIES.map((s) => <option key={s}>{s}</option>)}</select>
+                <Select value={editing.우선순위} onChange={(v) => set('우선순위', v)} options={PRIORITIES} ariaLabel="우선순위" />
               </label>
             </div>
             <label className="field"><span>담당 부서</span>
-              <select value={editing.담당부서} onChange={(e) => set('담당부서', e.target.value)}>{DEPTS.map((s) => <option key={s}>{s}</option>)}</select>
+              <Select value={editing.담당부서} onChange={(v) => set('담당부서', v)} options={DEPTS} ariaLabel="담당 부서" colorMap={DEPT_COLORS} />
             </label>
             <label className="field"><span>담당자</span>
               <input type="text" value={editing.담당자} onChange={(e) => set('담당자', e.target.value)} placeholder="예: 이제빈 등 3명" />

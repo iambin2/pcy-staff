@@ -209,6 +209,41 @@ select {
 }
 select:hover { background-color: var(--surface-3); box-shadow: none; }
 select option { background: var(--surface-2); color: var(--ink); }
+
+/* ---------- 커스텀 드롭다운 ---------- */
+.sel { position: relative; }
+.sel-trigger {
+  width: 100%; display: flex; align-items: center; justify-content: space-between; gap: 8px;
+  font: inherit; padding: 11px 13px; border: 1px solid var(--line-soft); border-radius: 10px;
+  background: var(--surface-2); color: var(--ink); cursor: pointer; text-align: left;
+  transition: background var(--dur) var(--ease), box-shadow var(--dur) var(--ease), border-color var(--dur) var(--ease);
+}
+.sel-trigger:hover { background: var(--surface-3); }
+.sel-open .sel-trigger {
+  border-color: transparent; background: var(--surface-3);
+  box-shadow: 0 0 0 1px rgba(91, 141, 239, 0.35), 0 0 18px rgba(91, 141, 239, 0.28);
+}
+.sel-val { display: inline-flex; align-items: center; gap: 8px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.sel-dot { width: 11px; height: 11px; border-radius: 3px; flex-shrink: 0; }
+.sel-caret { color: var(--muted); flex-shrink: 0; transition: transform var(--dur) var(--ease), color var(--dur) var(--ease); }
+.sel-open .sel-caret { transform: rotate(180deg); color: var(--brand-bright); }
+.sel-menu {
+  position: absolute; top: calc(100% + 6px); left: 0; right: 0; z-index: 10;
+  list-style: none; margin: 0; padding: 5px;
+  background: var(--surface-2); border: 1px solid var(--line); border-radius: 10px;
+  box-shadow: var(--shadow); max-height: 240px; overflow-y: auto;
+  transform-origin: top center; animation: selIn 0.18s var(--ease) both;
+}
+@keyframes selIn { from { opacity: 0; transform: translateY(-6px) scale(0.98); } to { opacity: 1; transform: none; } }
+.sel-opt {
+  width: 100%; display: flex; align-items: center; justify-content: space-between; gap: 8px;
+  text-align: left; background: transparent; border: none; font: inherit; font-size: 14px;
+  color: var(--ink); padding: 9px 11px; border-radius: 7px; cursor: pointer;
+  transition: background var(--dur) var(--ease), color var(--dur) var(--ease);
+}
+.sel-opt:hover { background: var(--surface-3); }
+.sel-opt-on { color: var(--brand-bright); font-weight: 600; }
+.sel-check { color: var(--brand-bright); font-size: 12px; flex-shrink: 0; }
 input:disabled, textarea:disabled { opacity: 0.6; }
 .field-error { font-size: 13.5px; color: var(--danger); background: var(--danger-soft); padding: 9px 12px; border-radius: 9px; animation: pop var(--dur) var(--ease) both; }
 
